@@ -1,8 +1,6 @@
 import { join } from "node:path";
 
-import { createCompiledRuntimeModelCatalogLoader } from "#compiler/model-catalog.js";
 import { discoverAgent } from "#discover/discover-agent.js";
-import { formatLanguageModelGatewayId } from "#internal/runtime-model.js";
 import type { AgentReasoningDefinition } from "#shared/agent-definition.js";
 import type {
   AgentModelSetting,
@@ -122,23 +120,13 @@ export async function changeAgentModel(input: {
     : { kind: "changed", to: result.to };
 }
 
-export async function validateModelSlug(appRoot: string, slug: string): Promise<string | null> {
+export async function validateModelSlug(_appRoot: string, slug: string): Promise<string | null> {
   if (parseChatGptModelSelection(slug) !== undefined) return null;
   if (slug.startsWith(CHATGPT_MODEL_SELECTION_PREFIX)) {
     return "Choose a bare OpenAI model id after `chatgpt/`.";
   }
   if (!slug.includes("/")) {
     return `\`${slug}\` isn't a provider/model id (e.g. anthropic/claude-sonnet-5).`;
-  }
-
-  const catalog = createCompiledRuntimeModelCatalogLoader(appRoot);
-  try {
-    const limits = await catalog.getModelLimits(formatLanguageModelGatewayId(slug));
-    if (limits === null) {
-      return `I couldn't confirm \`${slug}\` in the AI Gateway model catalog, so I didn't change agent.ts.`;
-    }
-  } catch {
-    return null;
   }
   return null;
 }

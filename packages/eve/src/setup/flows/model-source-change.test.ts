@@ -12,4 +12,14 @@ describe("validateModelSlug", () => {
       "Choose a bare OpenAI model id after `chatgpt/`.",
     );
   });
+
+  it("accepts well-formed provider/model ids even when they are not in the Gateway catalog", async () => {
+    await expect(validateModelSlug("/app", "local/llama3.2")).resolves.toBeNull();
+  });
+
+  it("rejects ids without a provider prefix", async () => {
+    await expect(validateModelSlug("/app", "llama3.2")).resolves.toBe(
+      "`llama3.2` isn't a provider/model id (e.g. anthropic/claude-sonnet-5).",
+    );
+  });
 });

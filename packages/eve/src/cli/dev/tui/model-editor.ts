@@ -358,21 +358,37 @@ function transitionModelScreen(
     case "cancel":
       if (select.filter.length > 0) {
         return renderSelect(
-          reduceSelect(select, { type: "clear" }, { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION }),
+          reduceSelect(
+            select,
+            { type: "clear" },
+            { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION },
+          ),
         );
       }
       return toMenu(state, "model");
     case "move":
       return renderSelect(
-        reduceSelect(select, { type: event.direction }, { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION }),
+        reduceSelect(
+          select,
+          { type: event.direction },
+          { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION },
+        ),
       );
     case "char":
       return renderSelect(
-        reduceSelect(select, { type: "char", char: event.char }, { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION }),
+        reduceSelect(
+          select,
+          { type: "char", char: event.char },
+          { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION },
+        ),
       );
     case "backspace":
       return renderSelect(
-        reduceSelect(select, { type: "backspace" }, { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION }),
+        reduceSelect(
+          select,
+          { type: "backspace" },
+          { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION },
+        ),
       );
     case "submit": {
       const visible = filterOptions(options, select.filter, CUSTOM_MODEL_SEARCH_ACTION);

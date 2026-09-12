@@ -295,13 +295,14 @@ describe("model sub-screen", () => {
     expect(picked.draft.reasoning).toBe("default");
   });
 
-  it("ignores submit when the filter matches nothing", () => {
+  it("uses the filter text as a custom model when the catalog has no match", () => {
     const req = request();
     const state = drive(req, initialModelEditorState(req), [
       { type: "submit" },
       { type: "char", char: "zzz" },
+      { type: "submit" },
     ]);
-    expect(transitionModelEditor(state, { type: "submit" }, req).kind).toBe("ignore");
+    expect(state.draft.modelId).toBe("zzz");
   });
 });
 

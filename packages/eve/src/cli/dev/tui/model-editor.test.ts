@@ -244,6 +244,20 @@ describe("model sub-screen", () => {
     expect(state.capabilities?.reasoningLevels).toEqual(["low", "high"]);
   });
 
+  it("accepts a typed custom model id outside the catalog", () => {
+    const req = request();
+    let state = drive(req, initialModelEditorState(req), [
+      { type: "submit" },
+      { type: "char", char: "local/llama3.2" },
+    ]);
+
+    state = drive(req, state, [{ type: "submit" }]);
+
+    expect(state.screen).toEqual({ kind: "menu", cursor: "model" });
+    expect(state.draft.modelId).toBe("local/llama3.2");
+    expect(state.capabilities).toBeUndefined();
+  });
+
   it("snaps a drafted level the picked model cannot serve to its closest supported one", () => {
     const req = request({ reasoning: "xhigh" });
     let state = drive(req, initialModelEditorState(req), [
@@ -281,13 +295,14 @@ describe("model sub-screen", () => {
     expect(picked.draft.reasoning).toBe("default");
   });
 
-  it("ignores submit when the filter matches nothing", () => {
+  it("uses the filter text as a custom model when the catalog has no match", () => {
     const req = request();
     const state = drive(req, initialModelEditorState(req), [
       { type: "submit" },
       { type: "char", char: "zzz" },
+      { type: "submit" },
     ]);
-    expect(transitionModelEditor(state, { type: "submit" }, req).kind).toBe("ignore");
+    expect(state.draft.modelId).toBe("zzz");
   });
 });
 

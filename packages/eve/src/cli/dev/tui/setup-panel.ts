@@ -1130,6 +1130,7 @@ function renderModelEditorModelScreen(
       message: MODEL_EDITOR_MESSAGE,
       options: request.model.kind === "pick" ? request.model.options : [],
       placeholder: "type to search",
+      searchAction: { label: (query) => `Use custom model '${query}'` },
       select,
     },
     theme,

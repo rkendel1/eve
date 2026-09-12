@@ -4,7 +4,9 @@ import {
   filterOptions,
   initialSelectState,
   reduceSelect,
+  searchActionQuery,
   selectValueAtCursor,
+  type SearchActionOption,
   type SelectState,
 } from "#setup/cli/select-state.js";
 import type { ModelSettingsRequest, ModelSettingsResult } from "#setup/flows/model.js";
@@ -65,6 +67,9 @@ export type ModelEditorSectionView =
   | { kind: "hidden" };
 
 const NOT_EDITABLE_TEXT = "No editable agent.ts config object is available";
+const CUSTOM_MODEL_SEARCH_ACTION: SearchActionOption = {
+  label: (query) => `Use custom model '${query}'`,
+};
 
 /**
  * The reasoning row stays interactive while a level is drafted even when the
@@ -215,7 +220,10 @@ export function initialModelEditorState(request: ModelSettingsRequest): ModelEdi
 /** A fresh search list opened on the drafted model with no filter. */
 function expandedModelSelect(request: ModelSettingsRequest, modelId: string | null): SelectState {
   const options = request.model.kind === "pick" ? request.model.options : [];
-  const input: Parameters<typeof initialSelectState>[0] = { options };
+  const input: Parameters<typeof initialSelectState>[0] = {
+    options,
+    searchAction: CUSTOM_MODEL_SEARCH_ACTION,
+  };
   if (modelId !== null) input.defaultValue = modelId;
   return initialSelectState(input);
 }
@@ -349,18 +357,43 @@ function transitionModelScreen(
   switch (event.type) {
     case "cancel":
       if (select.filter.length > 0) {
-        return renderSelect(reduceSelect(select, { type: "clear" }, { options }));
+        return renderSelect(
+          reduceSelect(
+            select,
+            { type: "clear" },
+            { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION },
+          ),
+        );
       }
       return toMenu(state, "model");
     case "move":
-      return renderSelect(reduceSelect(select, { type: event.direction }, { options }));
+      return renderSelect(
+        reduceSelect(
+          select,
+          { type: event.direction },
+          { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION },
+        ),
+      );
     case "char":
-      return renderSelect(reduceSelect(select, { type: "char", char: event.char }, { options }));
+      return renderSelect(
+        reduceSelect(
+          select,
+          { type: "char", char: event.char },
+          { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION },
+        ),
+      );
     case "backspace":
-      return renderSelect(reduceSelect(select, { type: "backspace" }, { options }));
+      return renderSelect(
+        reduceSelect(
+          select,
+          { type: "backspace" },
+          { options, searchAction: CUSTOM_MODEL_SEARCH_ACTION },
+        ),
+      );
     case "submit": {
-      const visible = filterOptions(options, select.filter);
-      const value = selectValueAtCursor(visible, select.cursor);
+      const visible = filterOptions(options, select.filter, CUSTOM_MODEL_SEARCH_ACTION);
+      const selected = selectValueAtCursor(visible, select.cursor);
+      const value = selected === undefined ? undefined : (searchActionQuery(selected) ?? selected);
       if (value === undefined) return ignore(state);
       const capabilities = request.capabilitiesFor(value);
       return {

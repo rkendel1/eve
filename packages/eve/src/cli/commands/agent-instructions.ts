@@ -8,7 +8,7 @@ import { DEFAULT_AGENT_MODEL_ID } from "#shared/default-agent-model.js";
 // The two coding-agent prompts are one onboarding flow in two phases, composed
 // from the section files in `agent-prompt/`. The setup guide runs before
 // anything is scaffolded when malformed init input prevents the command from
-// running; the handoff runs once a project exists (after `eve init`, or when
+// running; the handoff runs once a project exists (after `chip init`, or when
 // seeding a REPL). Both reuse the `collect-intent`, `vercel-connect`, and
 // `build-and-verify` sections verbatim, so guidance authored once reaches both.
 // `{{devCommand}}` is rendered per
@@ -53,21 +53,21 @@ function compose(
 
 /**
  * The pre-scaffold setup guide shown after malformed coding-agent input. It
- * scaffolds from scratch, so it renders with the universal `npx eve dev` rather
+ * scaffolds from scratch, so it renders with the universal `npx chip dev` rather
  * than a launcher-specific command.
  */
 export function initAgentInstructions(): string {
-  return compose(SETUP_SECTIONS, { devCommand: "npx eve dev" });
+  return compose(SETUP_SECTIONS, { devCommand: "npx chip dev" });
 }
 
-/** Concise scaffold facts printed only when a coding agent launched `eve init`. */
+/** Concise scaffold facts printed only when a coding agent launched `chip init`. */
 export function initAgentReadySummary(
   model: string | undefined,
   projectPath: string,
   options: { workspace?: boolean } = {},
 ): string {
   const selectedModel = model ?? DEFAULT_AGENT_MODEL_ID;
-  const defaultLabel = model === undefined ? pc.dim(" (eve default)") : "";
+  const defaultLabel = model === undefined ? pc.dim(" (Chip default)") : "";
   const authoredFiles = options.workspace
     ? `${pc.green("✓")} Agents ${pc.bold(join(projectPath, "agents"))}`
     : `${pc.green("✓")} Instructions ${pc.bold(join(projectPath, "agent/instructions.md"))}`;
@@ -93,12 +93,12 @@ export function initAgentReplPrompt(options: { devCommand: string }): string {
 }
 
 /**
- * Pre-scaffold guide for a coding agent that ran `eve extension init` with no
+ * Pre-scaffold guide for a coding agent that ran `chip extension init` with no
  * target. Mirrors agent bare-init: collect a package name, then re-run with it.
  */
 export function initExtensionInstructions(): string {
   return [
-    "You are scaffolding an eve extension package (a reusable package of tools,",
+    "You are scaffolding a Chip extension package (a reusable package of tools,",
     "connections, skills, and hooks that a consuming agent mounts under",
     "agent/extensions/).",
     "",
@@ -108,14 +108,14 @@ export function initExtensionInstructions(): string {
     "",
     "That creates the package, installs dependencies, and initializes Git. It",
     "prints what was set up and how to author, build, and mount the extension —",
-    "it does not start eve dev (extensions are not standalone agents).",
+    "it does not start chip dev (extensions are not standalone agents).",
     "",
-    "Build with `eve extension build` (or the package `build` script).",
+    "Build with `chip extension build` (or the package `build` script).",
   ].join("\n");
 }
 
 /**
- * Post-scaffold handoff after `eve extension init`. Same text for human and
+ * Post-scaffold handoff after `chip extension init`. Same text for human and
  * coding-agent launches: what was written and what to do next. Never assumes
  * `eve dev`.
  */
@@ -130,7 +130,7 @@ export function initExtensionHandoff(options: {
     "What we set up:",
     "  - package.json with eve.extension source/dist roots, peer+dev eve, and zod",
     "  - extension/extension.ts (config schema via defineExtension)",
-    "  - build/prepare scripts → eve extension build",
+    "  - build/prepare scripts → chip extension build",
     "",
     "Next:",
     "  - Add tools, skills, hooks, or connections under extension/",

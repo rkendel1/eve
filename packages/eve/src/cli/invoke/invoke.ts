@@ -208,7 +208,7 @@ async function observeInvocation(
       return {
         status: "failed",
         message:
-          "Local eve invoke cannot pause for connection authorization because its temporary server must remain available for the callback. Run eve dev, then invoke its URL with --url.",
+          "Local Chip invoke cannot pause for connection authorization because its temporary server must remain available for the callback. Run chip dev, then invoke its URL with --url.",
       };
     }
     return { status: "authorization-required", authorizations, resume };

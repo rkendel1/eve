@@ -37,7 +37,7 @@ export function registerBuildCommand(input: {
       const context = await input.applicationContext.resolveAgent();
       if (context.kind !== "workspace") await input.applicationContext.resolve();
     })
-    .description("Build the current eve application.")
+    .description("Build the current Chip application.")
     .option("--profile <path>", "Write best-effort timing and output-size profile JSON to a file")
     .option(
       "--skip-sandbox-prewarm",

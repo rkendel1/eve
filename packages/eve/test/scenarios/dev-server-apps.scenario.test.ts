@@ -161,7 +161,7 @@ async function expectWorkspaceExtensionToolDescription(
   await expect(workspaceExtensionToolDescription(serverUrl)).resolves.toBe(description);
 }
 
-describe("eve dev server app layouts", () => {
+describe("chip dev server app layouts", () => {
   it(
     "rebuilds mounted workspace extensions from source and preserves the active dist on failure",
     async () => {

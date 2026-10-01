@@ -73,7 +73,7 @@ function createCandidateChannelSource(): string {
   ]);
 }
 
-describe("eve dev server rebuild transactions", () => {
+describe("chip dev server rebuild transactions", () => {
   it(
     "scopes a local-dev capability through the host and releases its watcher lease",
     async () => {
@@ -259,7 +259,7 @@ describe("eve dev server rebuild transactions", () => {
         const pointerPath = resolveDevelopmentRuntimeArtifactsPointerPath(app.appRoot);
         const startupRuntimeRoot = readDevelopmentRuntimeArtifactsSnapshotRoot(pointerPath);
         if (startupRuntimeRoot === undefined) {
-          throw new Error("Expected eve dev to publish an initial runtime snapshot.");
+          throw new Error("Expected chip dev to publish an initial runtime snapshot.");
         }
 
         await writeFile(

@@ -44,7 +44,7 @@ export function registerAcpCommand(options: RegisterAcpCommandOptions): void {
       ) === undefined
     );
   })
-    .description("Serve an eve agent through stable ACP v1 over stdio.")
+    .description("Serve a Chip agent through stable ACP v1 over stdio.")
     .argument("[url]", "Connect to an existing server URL", parseDevelopmentServerUrl)
     .option("-u, --url <url>", "Connect to an existing server URL", parseDevelopmentServerUrl)
     .option("--scope <team>", "Vercel team that owns the URL target")

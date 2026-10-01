@@ -1,5 +1,10 @@
+import type { LanguageModel } from "ai";
+
 import { AI_GATEWAY_MODELS_CATALOG_URL, vercelGatewayFetch } from "#internal/gateway.js";
+import { formatLanguageModelGatewayId } from "#internal/runtime-model.js";
 import {
+  canonicalBuiltInModelId,
+  findBuiltInModelLimits,
   findCatalogModelByProviderModelId,
   findCatalogModelBySlug,
   modelCatalogLimitsFromProvider,
@@ -46,6 +51,14 @@ export function createRuntimeModelCatalog(
 
   return {
     async getByGatewayId(modelId) {
+      // Known models resolve without a catalog request, so selecting one never
+      // depends on AI Gateway being reachable. The canonical id is returned so
+      // a `-thinking` query reports the same id a catalog lookup would.
+      const builtIn = resolveBuiltInMetadata(modelId);
+      if (builtIn !== null) {
+        return builtIn;
+      }
+
       const catalog = await loadCatalog();
       const model = findCatalogModelBySlug(catalog.models, modelId);
       if (model === undefined) return null;
@@ -60,6 +73,20 @@ export function createRuntimeModelCatalog(
     },
 
     async getByProviderModelId(provider, providerModelId) {
+      // A direct provider instance has no gateway id of its own, so consult the
+      // built-in table with the `provider/model` form its id would take. A
+      // provider may carry a dotted sub-path (`openai.responses`), so it is
+      // normalized exactly as the reference id is. Only an unknown model falls
+      // through to the catalog.
+      const providerModelKey = formatLanguageModelGatewayId({
+        provider,
+        modelId: providerModelId,
+      } as LanguageModel);
+      const builtIn = resolveBuiltInMetadata(providerModelKey);
+      if (builtIn !== null) {
+        return builtIn;
+      }
+
       const catalog = await loadCatalog();
       const match = findCatalogModelByProviderModelId({
         models: catalog.models,
@@ -72,6 +99,27 @@ export function createRuntimeModelCatalog(
       return limits === null ? null : { ...limits, resolvedModelId: match.model.slug };
     },
   };
+}
+
+/** Built-in metadata for a known model id, or `null` when eve cannot describe it. */
+function resolveBuiltInMetadata(modelId: string): RuntimeModelMetadata | null {
+  const limits = findBuiltInModelLimits(modelId);
+  const canonicalId = canonicalBuiltInModelId(modelId);
+  if (limits === null || canonicalId === null) {
+    return null;
+  }
+  const metadata: {
+    contextWindowTokens: number;
+    maxOutputTokens?: number;
+    resolvedModelId: string;
+  } = {
+    contextWindowTokens: limits.contextWindowTokens,
+    resolvedModelId: canonicalId,
+  };
+  if (limits.maxOutputTokens !== undefined) {
+    metadata.maxOutputTokens = limits.maxOutputTokens;
+  }
+  return metadata;
 }
 
 function parseCatalogResponse(value: unknown) {

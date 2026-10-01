@@ -150,6 +150,9 @@ const SKIP_DIRS = new Set([
   "build",
   "coverage",
   ".vercel",
+  // Staged Chip release artifact: a full copy of packages/eve, so its sources
+  // would otherwise be linted a second time as if they were new code.
+  ".chip-staging",
 ]);
 
 /** @typedef {{ rule: number; file: string; line?: number; message: string }} Violation */

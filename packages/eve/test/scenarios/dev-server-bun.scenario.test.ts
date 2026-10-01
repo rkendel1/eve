@@ -25,7 +25,7 @@ const BUN_LAYOUT_DESCRIPTOR: ScenarioAppDescriptor = {
 
 const bunAvailable = isBunAvailable();
 
-describe("eve dev server with bun", () => {
+describe("chip dev server with bun", () => {
   it("keeps bun available in CI so the suite cannot silently skip", () => {
     if (process.env.CI !== undefined) {
       expect(bunAvailable).toBe(true);
@@ -64,7 +64,7 @@ describe("eve dev server with bun", () => {
   // into every dev worker, and that adapter refuses to initialize when the
   // Bun global exists. Until that support lands upstream, the contract is a
   // fast, explanatory startup failure instead of a hang or a half-broken
-  // server. Replace this with a boot-and-stream assertion when `bun eve dev`
+  // server. Replace this with a boot-and-stream assertion when `bun chip dev`
   // becomes supported.
   it.skipIf(!bunAvailable)(
     "fails fast with the worker readiness error when the CLI runs under bun",

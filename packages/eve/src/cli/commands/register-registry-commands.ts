@@ -1,6 +1,7 @@
 import { InvalidArgumentError, type Command } from "#compiled/commander/index.js";
 import { applicationCommand, type CliApplicationContext } from "#cli/application-command.js";
 import { agentCommand } from "#cli/agent-command.js";
+import { CHIP_WORDMARK } from "#cli/banner.js";
 
 import { parseSetupAnswer } from "./setup-answers.js";
 
@@ -35,7 +36,7 @@ export function registerRegistryCommands(input: {
   const { applicationContext, logger, program } = input;
 
   const add = agentCommand(program.command("add [item]"), applicationContext)
-    .description("Install a registry item; relative paths use the official eve registry.")
+    .description("Install a registry item; relative paths use the official registry.")
     .option("-o, --overwrite", "Overwrite existing files.")
     .option("--skip-install", "Run the item's setup flow without installing it.")
     .option("--skip-setup", "Skip the item's setup flow.")
@@ -49,7 +50,7 @@ export function registerRegistryCommands(input: {
       parseSetupAnswer,
     )
     .option("-y, --yes", "Run setup and accept its recommended defaults.")
-    .addHelpText("after", "\nSearch the registry:\n  $ eve registry search <query>\n")
+    .addHelpText("after", `\nSearch the registry:\n  $ ${CHIP_WORDMARK} registry search <query>\n`)
     .action(
       async (
         item: string | undefined,

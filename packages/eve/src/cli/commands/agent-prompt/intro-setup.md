@@ -1,5 +1,5 @@
-# Set up an eve agent
+# Set up a Chip agent
 
-eve is a filesystem-first framework for durable backend AI agents. The agent is a
-directory of files that eve compiles and runs: its instructions, tools,
+Chip is a filesystem-first framework for durable backend AI agents. The agent is a
+directory of files that Chip compiles and runs: its instructions, tools,
 connections, and channels. Work through this with the user.

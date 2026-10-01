@@ -1,4 +1,4 @@
-import { ClosedQA, Factuality, Sql, Summary, type Score } from "autoevals";
+import { ClosedQA, Factuality, Sql, Summary, type Score } from "#compiled/autoevals/index.js";
 import type { LanguageModel } from "ai";
 
 import { formatLanguageModelGatewayId } from "#internal/runtime-model.js";

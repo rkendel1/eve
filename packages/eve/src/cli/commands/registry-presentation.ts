@@ -40,7 +40,7 @@ function renderSearchItem(
   const addressLines = wrapVisibleLine(normalizeRegistryText(item.address), valueWidth);
   const implementationLabel =
     item.implementation === "native"
-      ? "First-class eve channel"
+      ? "First-class Chip channel"
       : item.implementation === "chat-sdk"
         ? "Chat SDK adapter"
         : undefined;
@@ -107,7 +107,7 @@ export function registryViewText(item: string, input: unknown): string {
   if (metadata?.implementation !== undefined) {
     lines.push(
       "",
-      `Implementation  ${metadata.implementation === "native" ? "First-class eve channel" : "Chat SDK adapter"}`,
+      `Implementation  ${metadata.implementation === "native" ? "First-class Chip channel" : "Chat SDK adapter"}`,
     );
   }
   if (metadata?.setup !== undefined) lines.push("Setup           Guided setup");

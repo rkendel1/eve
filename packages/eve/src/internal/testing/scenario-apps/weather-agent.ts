@@ -28,7 +28,7 @@ export const runtimeModelId = "openai/gpt-5.4-mini";
 `;
 
 const WEATHER_TOOL_SOURCE = `import { defineTool } from "eve/tools";
-import { z } from "zod";
+import { z } from "#compiled/zod/index.js";
 import { createForecast } from "../lib/weather/client.ts";
 
 export default defineTool({

@@ -125,7 +125,7 @@ export type DynamicSentinel<TResult = unknown> = {
  *
  * ```ts
  * import { defineDynamic, defineTool } from "eve/tools";
- * import { z } from "zod";
+ * import { z } from "#compiled/zod/index.js";
  *
  * export default defineDynamic({
  *   events: {

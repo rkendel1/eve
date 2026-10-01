@@ -6,7 +6,7 @@ import { signalEveDevDuringStartup, startEveDev } from "./dev-server-harness.js"
 
 const scenarioApp = useScenarioApp();
 
-describe("eve dev shutdown", () => {
+describe("chip dev shutdown", () => {
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     it(`returns within one second after ${signal}`, async () => {
       const app = await scenarioApp(WEATHER_AGENT_DESCRIPTOR);

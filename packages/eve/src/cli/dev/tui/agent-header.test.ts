@@ -23,7 +23,7 @@ describe("buildAgentHeader", () => {
     const titleIndex = plain.findIndex((line) => line.includes("Weather Agent"));
 
     expect(plain[0]).toBe(`╭${"─".repeat(66)}╮`);
-    expect(plain[titleIndex]).toMatch(/^│ ☰eve \(v\d+\.\d+\.\d+\) +Weather Agent │$/u);
+    expect(plain[titleIndex]).toMatch(/^│ ☰chip \(v\d+\.\d+\.\d+\) +Weather Agent │$/u);
     expect(card).not.toContain("model");
     expect(card).not.toContain("instructions");
     expect(card).not.toContain("⣿");

@@ -18,7 +18,7 @@ const INFO_ROUTE_KEY = `GET ${EVE_INFO_ROUTE_PATH}`;
 
 // A request to the local server. The deployment environment, not this
 // URL, decides auth: `localDev()` authenticates only when the process
-// is an `eve dev` or `vercel dev` server (stubbed via EVE_DEV below).
+// is an `chip dev` or `vercel dev` server (stubbed via EVE_DEV below).
 const LOOPBACK_REQUEST = new Request("http://localhost/eve/v1/info");
 
 // A request a real deployment sees on the wire. With no dev flag set,
@@ -133,7 +133,7 @@ describe("eve agent info route", () => {
   it("returns 401 for a deployment request without a Vercel OIDC bearer token", async () => {
     // With no dev flag set, the default chain must reject a request that
     // carries no token: `vercelOidc()` skips without a bearer token and
-    // `localDev()` skips outside an `eve dev` or `vercel dev` server.
+    // `localDev()` skips outside an `chip dev` or `vercel dev` server.
     const { agentRoot, appRoot } = await createAppRoot(
       "eve-agent-info-route-deployed-",
       APP_ROOT_OPTIONS,

@@ -298,6 +298,53 @@ describe("createCompiledRuntimeModelCatalogLoader", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("resolves a known built-in direct provider without fetching the catalog", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("offline"));
+    const loader = createCompiledRuntimeModelCatalogLoader("/tmp/test-app");
+    const result = await loader.getByProviderModelId("openai", "gpt-5.4");
+    expect(result).toEqual({
+      slug: "openai/gpt-5.4",
+      limits: { contextWindowTokens: 400_000, maxOutputTokens: 128_000 },
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("resolves a known built-in through a dotted provider without fetching the catalog", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("offline"));
+    const loader = createCompiledRuntimeModelCatalogLoader("/tmp/test-app");
+    const result = await loader.getByProviderModelId("openai.responses", "gpt-5.4");
+    expect(result).toEqual({
+      slug: "openai/gpt-5.4",
+      limits: { contextWindowTokens: 400_000, maxOutputTokens: 128_000 },
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("normalizes Anthropic's hyphenated ids when resolving a built-in", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("offline"));
+    const loader = createCompiledRuntimeModelCatalogLoader("/tmp/test-app");
+    const result = await loader.getByProviderModelId("anthropic.messages", "claude-opus-4-7");
+    expect(result).toEqual({
+      slug: "anthropic/claude-opus-4.7",
+      limits: { contextWindowTokens: 200_000, maxOutputTokens: 32_000 },
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("still reaches the catalog for a direct provider eve cannot describe", async () => {
+    mockCatalogFetch();
+    const loader = createCompiledRuntimeModelCatalogLoader("/tmp/test-app");
+    const result = await loader.getByProviderModelId("unknown", "model");
+    expect(result).toBeNull();
+    expect(globalThis.fetch).toHaveBeenCalled();
+  });
+
+  it("preserves the fetch error for a direct provider eve cannot describe", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("offline"));
+    const loader = createCompiledRuntimeModelCatalogLoader("/tmp/test-app");
+    await expect(loader.getByProviderModelId("unknown", "model")).rejects.toThrow("offline");
+  });
+
   it("preserves the fetch error for an unknown model", async () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("offline"));
     const loader = createCompiledRuntimeModelCatalogLoader("/tmp/test-app");

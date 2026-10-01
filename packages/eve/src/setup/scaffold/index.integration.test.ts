@@ -269,7 +269,7 @@ describe("ensureChannel", () => {
     expect(packageJson).toContain('"@shikijs/engine-oniguruma": "3.23.0"');
     expect(packageJson).toContain('"build:eve": "eve build"');
     expect(packageJson).toContain('"dev": "next dev"');
-    expect(packageJson).toContain('"dev:eve": "eve dev"');
+    expect(packageJson).toContain('"dev:eve": "chip dev"');
     expect(packageJson).toContain('"start:eve": "eve start"');
     expect(JSON.parse(packageJson)).toMatchObject({ engines: { node: "24.x" } });
     const tsconfig = JSON.parse(await readFile(join(projectRoot, "tsconfig.json"), "utf8")) as {
@@ -985,8 +985,8 @@ describe("scaffoldExtensionProject", () => {
       peerDependencies: { eve: "*" },
       dependencies: { zod: "4.5.4" },
       scripts: {
-        build: "eve extension build",
-        prepare: "eve extension build",
+        build: "chip extension build",
+        prepare: "chip extension build",
         typecheck: "tsc",
       },
       engines: { node: "24.x" },
@@ -1044,8 +1044,8 @@ describe("scaffoldBaseProject", () => {
     expect(readme).not.toContain("__EVE_INIT_");
     const packageJson = await readFile(join(projectRoot, "package.json"), "utf8");
     expect(packageJson).toContain('"eve": "^0.25.0"');
-    // Channels added later (`eve add channel/slack`, possibly next to a
-    // running `eve dev`) import @vercel/connect; init ships it so a later
+    // Channels added later (`chip add channel/slack`, possibly next to a
+    // running `chip dev`) import @vercel/connect; init ships it so a later
     // channel add never introduces a missing dependency.
     expect(packageJson).toContain('"@vercel/connect": "0.2.2"');
     // The default path used by `eve init` must carry the stable toolchain
@@ -1054,7 +1054,7 @@ describe("scaffoldBaseProject", () => {
       scripts: {
         build: "eve build",
         deploy: "eve deploy",
-        dev: "eve dev",
+        dev: "chip dev",
         eval: "eve eval",
         start: "eve start",
         typecheck: "tsc",
@@ -1087,8 +1087,8 @@ describe("scaffoldBaseProject", () => {
     expect(agentsMd).toContain("Stop discovery once the file location");
     expect(agentsMd).toContain("Follow links or inspect public types only");
     expect(agentsMd).toContain("recursively glob `node_modules`");
-    expect(agentsMd).toContain("eve registry search <query> --json");
-    expect(agentsMd).toContain("eve registry view <item>");
+    expect(agentsMd).toContain("chip registry search <query> --json");
+    expect(agentsMd).toContain("chip registry view <item>");
     expect(agentsMd).toContain("For a generic capability, author a tool instead.");
     expect(agentsMd).toContain("eve add <item> --non-interactive");
     expect(agentsMd).toContain("Exit code 0 means setup completed");
@@ -1126,7 +1126,7 @@ describe("scaffoldBaseProject", () => {
       await expect(readFile(join(projectRoot, "package.json"), "utf8")).resolves.toContain(
         '"eve": "^0.25.0"',
       );
-      await expect(readFile(join(projectRoot, "README.md"), "utf8")).resolves.toContain("eve dev");
+      await expect(readFile(join(projectRoot, "README.md"), "utf8")).resolves.toContain("chip dev");
       await expect(pathExists(join(projectRoot, "pnpm-workspace.yaml"))).resolves.toBe(
         packageManager === "pnpm",
       );

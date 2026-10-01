@@ -142,6 +142,6 @@ export async function addAgentsToWorkspace(
   logger.log(
     `${pc.green("✓")} Added ${names.length === 1 ? "agent" : "agents"} ${names.map((name) => pc.bold(name)).join(", ")}`,
   );
-  logger.log(pc.dim("$ eve dev --agent <name>"));
+  logger.log(pc.dim("$ chip dev --agent <name>"));
   return true;
 }

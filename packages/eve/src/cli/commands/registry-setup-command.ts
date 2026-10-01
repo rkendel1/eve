@@ -203,7 +203,7 @@ export async function runRegistrySetupCommand(
   );
   if (packageJsonPath === undefined) {
     throw new Error(
-      `Setup package "${setup.package}" is not installed. Run \`eve add ${item}\` first.`,
+      `Setup package "${setup.package}" is not installed. Run \`chip add ${item}\` first.`,
     );
   }
   const executable = await resolveNodePackageBin(packageJsonPath, setup.bin);

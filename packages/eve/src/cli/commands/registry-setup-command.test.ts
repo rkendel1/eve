@@ -350,7 +350,7 @@ describe("runRegistrySetupCommand", () => {
         options(),
       ),
     ).rejects.toThrow(
-      'Setup package "@acme/slack" is not installed. Run `eve add channel/slack` first.',
+      'Setup package "@acme/slack" is not installed. Run `chip add channel/slack` first.',
     );
     expect(spawn).not.toHaveBeenCalled();
   });

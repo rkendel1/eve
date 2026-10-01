@@ -1,5 +1,5 @@
 import type { ContentPart, ModelMessage, ToolSet, TypedToolCall } from "ai";
-import { z } from "zod";
+import { z } from "#compiled/zod/index.js";
 
 import type { HarnessToolMap } from "#harness/types.js";
 import type { InputRequest } from "#shared/input.js";

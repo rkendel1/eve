@@ -159,7 +159,7 @@ import {
   PROGRESS_PULSE_ASCII_GLYPH,
   PROGRESS_PULSE_GLYPH,
 } from "#cli/ui/progress-pulse.js";
-import { eveVersionTag } from "#cli/banner.js";
+import { chipVersionTag } from "#cli/banner.js";
 import { readGatewayServiceTier } from "#shared/gateway-service-tier.js";
 import {
   formatAssistantResponseStats,
@@ -2875,7 +2875,7 @@ export class TerminalRenderer implements AgentTUIRenderer {
       this.#partingLinePrinted = true;
       const session =
         this.#sessionId === undefined ? "" : ` ${this.#theme.glyph.dot} session ${this.#sessionId}`;
-      this.#output.write(`${this.#theme.colors.dim(`${eveVersionTag()}${session}`)}\n`);
+      this.#output.write(`${this.#theme.colors.dim(`${chipVersionTag()}${session}`)}\n`);
     }
   }
 

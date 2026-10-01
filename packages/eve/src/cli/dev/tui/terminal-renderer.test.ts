@@ -113,16 +113,16 @@ describe("TerminalRenderer (inline scrollback)", () => {
     renderer.shutdown();
 
     const lines = screen.snapshot().trimEnd().split("\n");
-    expect(lines.at(-1)).toMatch(/^☰eve {2}v\d+\.\d+\.\d+/u);
-    expect(screen.rawOutput()).toContain(`\x1b[2m☰eve  v`);
+    expect(lines.at(-1)).toMatch(/^☰chip {2}v\d+\.\d+\.\d+/u);
+    expect(screen.rawOutput()).toContain(`\x1b[2m☰chip  v`);
     // Once, ever — repeated teardown must not repeat the tag.
     renderer.shutdown();
-    expect(screen.snapshot().match(/☰eve/gu)).toHaveLength(1);
+    expect(screen.snapshot().match(/☰chip/gu)).toHaveLength(1);
 
     // A renderer that never went live exits silently.
     const idle = makeRenderer();
     idle.renderer.shutdown();
-    expect(idle.screen.snapshot()).not.toContain("☰eve");
+    expect(idle.screen.snapshot()).not.toContain("☰chip");
   });
 
   it("names the session in the parting line once the runner reports it", async () => {
@@ -135,7 +135,7 @@ describe("TerminalRenderer (inline scrollback)", () => {
     renderer.shutdown();
 
     const lines = screen.snapshot().trimEnd().split("\n");
-    expect(lines.at(-1)).toMatch(/^☰eve {2}v\d+\.\d+\.\d+ · session ses_0123456789$/u);
+    expect(lines.at(-1)).toMatch(/^☰chip {2}v\d+\.\d+\.\d+ · session ses_0123456789$/u);
 
     // Repeated reports keep the latest id; a renderer that never received
     // one prints the bare tag.
@@ -186,7 +186,7 @@ describe("TerminalRenderer (inline scrollback)", () => {
     renderer.shutdown();
 
     const snapshot = screen.snapshot();
-    expect(snapshot).toMatch(/☰eve \(v\d+\.\d+\.\d+\).*Weather Agent/u);
+    expect(snapshot).toMatch(/☰chip \(v\d+\.\d+\.\d+\).*Weather Agent/u);
     expect(snapshot).toContain("Tip: Use the /deploy command to deploy your agent.");
     expect(snapshot).not.toContain("http://localhost:3000");
   });
@@ -216,7 +216,7 @@ describe("TerminalRenderer (inline scrollback)", () => {
     const snapshot = screen.snapshot();
     expect(snapshot).toContain("new-model");
     expect(snapshot).not.toContain("old-model");
-    expect(snapshot.match(/☰eve/gu)).toHaveLength(1);
+    expect(snapshot.match(/☰chip/gu)).toHaveLength(1);
     expect(snapshot).toContain("hello");
     expect(snapshot).toContain("still here");
     renderer.shutdown();
@@ -3756,7 +3756,7 @@ describe("TerminalRenderer (inline scrollback)", () => {
     renderer.renderAgentHeader({ name: "Weather Agent", serverUrl: "http://localhost:3000" });
     renderer.shutdown();
 
-    expect(countOccurrences(screen.snapshot(), "☰eve (v")).toBe(1);
+    expect(countOccurrences(screen.snapshot(), "☰chip (v")).toBe(1);
   });
 
   it("reset clears committed transcript rows", () => {

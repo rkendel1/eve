@@ -39,7 +39,7 @@ export interface DeployProjectOptions {
   skip?: boolean;
   /**
    * Run even without a planned or detected project, linking interactively from
-   * inside `perform` (the `eve add channel/slack` composition; onboarding always has
+   * inside `perform` (the `chip add channel/slack` composition; onboarding always has
    * a plan or skips deploy with the channels).
    */
   ensureLinkedProject?: "interactive-vercel-link";
@@ -78,14 +78,14 @@ export interface DeployProjectPayload {
  * The project was linked up front by the link box, so `perform` reuses
  * `state.project` and never triggers a second interactive `vercel link` (the
  * #1020 deadlock). When no resolution exists (no link box ran, e.g. the
- * `eve add channel/slack` composition), it falls back to the interactive bare
+ * `chip add channel/slack` composition), it falls back to the interactive bare
  * `vercel link`, or throws {@link HumanActionRequiredError} headlessly.
  *
  * Once the project is linked, {@link syncHostFrameworkPreset} runs before the
  * deploy so a project that gained a host framework (e.g. a web channel) builds
  * the host app instead of the stale `eve` agent preset. It is a no-op for a
  * plain agent (no host framework on disk) or an already-correct preset, so
- * every deploy surface — `eve add channel/slack`, the dev TUI `/deploy`, onboarding —
+ * every deploy surface — `chip add channel/slack`, the dev TUI `/deploy`, onboarding —
  * gets the reconcile without composing a separate box.
  */
 export function deployProject(

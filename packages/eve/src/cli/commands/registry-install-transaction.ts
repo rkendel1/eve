@@ -85,8 +85,8 @@ export function registryInstallFailureCode(error: unknown): RegistryInstallFailu
 
 export function registryInstallFailureMessage(code: RegistryInstallFailureCode): string {
   return code === "pnpm_build_policy"
-    ? "Dependency installation stopped because pnpm requires build-script decisions. Run `pnpm approve-builds`, then retry the eve add command."
-    : "Dependency installation failed. Retry the eve add command in a terminal for details.";
+    ? "Dependency installation stopped because pnpm requires build-script decisions. Run `pnpm approve-builds`, then retry the chip add command."
+    : "Dependency installation failed. Retry the chip add command in a terminal for details.";
 }
 
 export async function installRegistryItemTransaction(input: {

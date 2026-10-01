@@ -10,7 +10,7 @@ import type {
   EveCliSetupStep,
   EveCliSetupTerminalResult,
 } from "#cli/telemetry/index.js";
-import { EVE_WORDMARK } from "#cli/banner.js";
+import { CHIP_WORDMARK } from "#cli/banner.js";
 import { formatElapsed } from "#cli/format-elapsed.js";
 import { startCliLiveRow } from "#cli/ui/live-row.js";
 import { createLogger, isLogLevelEnabled } from "#internal/logging.js";
@@ -152,7 +152,7 @@ async function addToExistingProject(
   if (options.channelWebNextjs === true) {
     throw new Error(
       "`--channel-web-nextjs` is not supported when adding an agent to an existing project. " +
-        "Run `eve add channel/web` from the project afterwards instead.",
+        "Run `chip add channel/web` from the project afterwards instead.",
     );
   }
 
@@ -566,14 +566,14 @@ export async function runInitCommand(
   trackStep?.("handoff");
   if (result.kind === "created") {
     logger.log(
-      `${pc.green("✓")} Created an ${EVE_WORDMARK} agent in ${pc.bold(result.projectPath)} ${pc.dim(`in ${formatElapsed(result.agentElapsedMs)}`)}`,
+      `${pc.green("✓")} Created an ${CHIP_WORDMARK} agent in ${pc.bold(result.projectPath)} ${pc.dim(`in ${formatElapsed(result.agentElapsedMs)}`)}`,
     );
     for (const mutation of result.workspaceRootMutations) {
       logger.log(pc.yellow(`⚠ ${formatWorkspaceRootMutationWarning(mutation)}`));
     }
   } else {
     logger.log(
-      `${pc.green("✓")} Added an ${EVE_WORDMARK} agent to ${pc.bold(result.projectPath)} ${pc.dim(`in ${formatElapsed(result.agentElapsedMs)}`)}`,
+      `${pc.green("✓")} Added an ${CHIP_WORDMARK} agent to ${pc.bold(result.projectPath)} ${pc.dim(`in ${formatElapsed(result.agentElapsedMs)}`)}`,
     );
   }
   logger.log(
@@ -654,7 +654,7 @@ export async function runInitCommand(
   // the command the way run-scripts do, so the handoff line is printed here.
   const freshScaffold = result.kind === "created";
   const devArguments = freshScaffold ? [...baseDevArguments, "--onboard"] : baseDevArguments;
-  logger.log(pc.dim("$ eve dev"));
+  logger.log(pc.dim("$ chip dev"));
   if (
     !resultSucceeded(
       await dependencies.spawnPackageManager(

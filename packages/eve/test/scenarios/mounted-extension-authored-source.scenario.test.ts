@@ -16,7 +16,7 @@ const compatibilityManifest = JSON.stringify({
 });
 
 /**
- * Runs the `eve eval` / `eve dev` path: the module map is hydrated from authored
+ * Runs the `eve eval` / `chip dev` path: the module map is hydrated from authored
  * source, so the extension-scope plugin must bind config across separately-bundled
  * mount and tool modules. Deterministic guard for the config-binding regression.
  */

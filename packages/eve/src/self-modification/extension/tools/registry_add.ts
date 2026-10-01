@@ -213,7 +213,7 @@ export function handoffMessage(input: {
       message: `${input.title} was not installed by this tool. ${input.reason} Continue in the setup panel that opens here; do not ask the developer to run another command.`,
     };
   }
-  const nextCommand = `eve add ${input.address}`;
+  const nextCommand = `chip add ${input.address}`;
   return {
     message: `${input.title} was not installed. ${input.reason} Run \`${nextCommand}\` in a terminal to finish it.`,
     nextCommand,
@@ -228,7 +228,7 @@ export async function addLocalRegistryItem(
   const capability = (options.getCapability ?? getLocalDevCapability)();
   if (capability === undefined) {
     throw new Error(
-      "Registry items can only be installed while `eve dev` is running. Report the item address to the developer instead of installing it.",
+      "Registry items can only be installed while `chip dev` is running. Report the item address to the developer instead of installing it.",
     );
   }
 

@@ -145,7 +145,7 @@ export function getLocalDevCapability(
       const leaseId = randomUUID();
       if (!(await suspendDevelopmentRuntimeArtifacts({ leaseId, serverUrl: controlUrl }))) {
         throw new Error(
-          "Could not pause the eve development server. Its authored-source watcher must be suspended before the authored tree is modified.",
+          "Could not pause the Chip development server. Its authored-source watcher must be suspended before the authored tree is modified.",
         );
       }
       let outcome:
@@ -165,7 +165,7 @@ export function getLocalDevCapability(
         (await resumeDevelopmentRuntimeArtifacts({ leaseId, serverUrl: controlUrl })) === undefined
       ) {
         throw new Error(
-          "Could not resume the eve development server after modifying the authored tree. Restart eve dev before making further source changes.",
+          "Could not resume the Chip development server after modifying the authored tree. Restart eve dev before making further source changes.",
           outcome.ok ? undefined : { cause: outcome.error },
         );
       }

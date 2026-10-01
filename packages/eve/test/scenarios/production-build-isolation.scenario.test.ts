@@ -142,7 +142,7 @@ async function startEveDev(appRoot: string): Promise<RunningDevServer> {
       settleReject(
         new Error(
           [
-            "Timed out waiting for eve dev readiness.",
+            "Timed out waiting for chip dev readiness.",
             `stdout:\n${processHandle.stdout()}`,
             `stderr:\n${processHandle.stderr()}`,
           ].join("\n\n"),
@@ -182,7 +182,7 @@ async function startEveDev(appRoot: string): Promise<RunningDevServer> {
       settleReject(
         new Error(
           [
-            `eve dev exited before readiness (code ${String(code)}, signal ${String(signal)}).`,
+            `chip dev exited before readiness (code ${String(code)}, signal ${String(signal)}).`,
             `stdout:\n${processHandle.stdout()}`,
             `stderr:\n${processHandle.stderr()}`,
           ].join("\n\n"),

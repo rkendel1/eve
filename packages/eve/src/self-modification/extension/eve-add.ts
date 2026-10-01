@@ -112,7 +112,7 @@ export async function resolveEveExecutable(appRoot: string): Promise<string> {
 }
 
 /**
- * Reads the one terminal event `eve add --non-interactive` prints.
+ * Reads the one terminal event `chip add --non-interactive` prints.
  *
  * The registry SDK writes its own progress to the same streams, so this scans
  * for the JSON line rather than assuming the output is only NDJSON.
@@ -145,7 +145,7 @@ export function readTerminalHeadlessEvent(output: string): HeadlessEvent | undef
 }
 
 /**
- * Runs `eve add <address> --non-interactive --skip-setup` in `appRoot`.
+ * Runs `chip add <address> --non-interactive --skip-setup` in `appRoot`.
  *
  * The argv shape is fixed here rather than composed by a caller: the
  * subcommand, the interaction mode, and the setup opt-out are the constraints
@@ -228,7 +228,7 @@ export async function runEveAdd(input: {
     child.on("error", () => {
       stop({
         kind: "failed",
-        message: `Could not run \`eve add ${input.address}\`. Run the command in a terminal for details.`,
+        message: `Could not run \`chip add ${input.address}\`. Run the command in a terminal for details.`,
       });
     });
     child.on("close", (code: number | null) => {
@@ -248,8 +248,8 @@ export async function runEveAdd(input: {
       ) {
         const reason =
           event.failureCode === "pnpm_build_policy"
-            ? "Dependency installation stopped because pnpm requires build-script decisions. Run `pnpm approve-builds`, then retry the eve add command."
-            : "Dependency installation failed. Retry the eve add command in a terminal for details.";
+            ? "Dependency installation stopped because pnpm requires build-script decisions. Run `pnpm approve-builds`, then retry the chip add command."
+            : "Dependency installation failed. Retry the chip add command in a terminal for details.";
         const changed = Array.isArray(event.changed)
           ? event.changed.filter(
               (path): path is string =>
@@ -270,7 +270,7 @@ export async function runEveAdd(input: {
       } else {
         outcome = {
           kind: "failed",
-          message: `\`eve add ${input.address}\` failed and may have partially changed the project. Run it in a terminal for details.`,
+          message: `\`chip add ${input.address}\` failed and may have partially changed the project. Run it in a terminal for details.`,
         };
       }
       finishAfterTreeExits(outcome);

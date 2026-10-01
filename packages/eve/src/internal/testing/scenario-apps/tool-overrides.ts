@@ -43,7 +43,7 @@ export default defineTool({
 `,
     "agent/tools/todo.ts": `import { defineState } from "eve/context";
 import { defineTool } from "eve/tools";
-import { z } from "zod";
+import { z } from "#compiled/zod/index.js";
 
 interface NoteListState {
   readonly notes: readonly string[];

@@ -19,7 +19,7 @@ function logger(): ExtensionBuildCliLogger & { messages: string[]; errors: strin
 }
 
 describe("runExtensionBuildCommand", () => {
-  it("rejects a package that is not an extension and points at eve extension build", async () => {
+  it("rejects a package that is not an extension and points at chip extension build", async () => {
     const root = await mkdtemp(join(tmpdir(), "eve-extension-build-agent-"));
     await writeFile(
       join(root, "package.json"),

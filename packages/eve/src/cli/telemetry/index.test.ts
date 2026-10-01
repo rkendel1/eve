@@ -112,7 +112,7 @@ describe("createEveCliTelemetry", () => {
       else Object.defineProperty(process.stderr, "isTTY", stderr);
     }
 
-    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("eve telemetry disable"));
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("chip telemetry disable"));
     expect(markEveTelemetryNotified).toHaveBeenCalled();
   });
 

@@ -93,7 +93,7 @@ function packageJsonTemplate(includeRootOnlyFields: boolean): string {
 }
 
 const EXTENSION_DECLARATION_TEMPLATE = `import { defineExtension } from "eve/extension";
-import { z } from "zod";
+import { z } from "#compiled/zod/index.js";
 
 export default defineExtension({
   config: z.object({

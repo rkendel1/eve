@@ -192,11 +192,11 @@ function packageJsonTemplate(includeRootOnlyFields: boolean): string {
     "#evals/*": "./evals/*"
   },
   "scripts": {
-    "build": "eve build",
-    "deploy": "eve deploy",
-    "dev": "eve dev",
-    "eval": "eve eval",
-    "start": "eve start",
+    "build": "chip build",
+    "deploy": "chip deploy",
+    "dev": "chip dev",
+    "eval": "chip eval",
+    "start": "chip start",
     "typecheck": "tsc"
   },
   "dependencies": {
@@ -235,7 +235,7 @@ This is an [eve](https://eve.dev) agent bootstrapped with [\`eve init\`](https:/
 First, run the development server:
 
 \`\`\`bash
-eve dev
+chip dev
 \`\`\`
 
 The development TUI opens an interactive session where you can send messages to your agent.
@@ -257,7 +257,7 @@ To learn more about eve, explore these resources:
 Deploy your agent to [Vercel](https://vercel.com) from the project root:
 
 \`\`\`bash
-eve deploy
+chip deploy
 \`\`\`
 
 \`eve deploy\` links a Vercel project if needed and deploys the agent to production. See the [eve deployment documentation](https://eve.dev/docs/guides/deployment/vercel) for authentication, environment variables, and deployment options.
@@ -326,8 +326,8 @@ Follow links or inspect public types only when the routed page leaves the task u
 When a task names an external product or service, search the registry before implementing its integration. For a generic capability, author a tool instead.
 
 \`\`\`sh
-eve registry search <query> --json
-eve registry view <item>
+chip registry search <query> --json
+chip registry view <item>
 \`\`\`
 
 Prefer items whose \`implementation\` is \`native\`; use Chat SDK adapters when no native channel fits. \`registry view\` links the item's documentation.
@@ -335,7 +335,7 @@ Prefer items whose \`implementation\` is \`native\`; use Chat SDK adapters when 
 Install without driving interactive prompts:
 
 \`\`\`sh
-eve add <item> --non-interactive
+chip add <item> --non-interactive
 \`\`\`
 
 Exit code 0 means setup completed, 1 failed, and 2 needs an answer or a prerequisite. On exit 2, run the \`next.command\` from the final NDJSON event. For a non-secret question, replace its \`<JSON value>\` answer placeholder with the answer you collected; string values need JSON quotes. Never pass a secret in \`--answer\`. See \`docs/install-integrations.mdx\` for setup prerequisites.
@@ -345,8 +345,8 @@ Exit code 0 means setup completed, 1 failed, and 2 needs an answer or a prerequi
 Use eve to link and deploy Vercel projects:
 
 \`\`\`sh
-eve link --non-interactive --project <name-or-id> [--team <team-id-or-slug>]
-eve deploy --non-interactive --yes [--project <name-or-id>]
+chip link --non-interactive --project <name-or-id> [--team <team-id-or-slug>]
+chip deploy --non-interactive --yes [--project <name-or-id>]
 \`\`\`
 
 A setup may report \`eve link\` as a prerequisite; run it, then retry the continuation. When a completed setup event has \`deploymentRequired: true\`, run the \`next\` command it reports.
@@ -448,7 +448,7 @@ export async function scaffoldBaseProject(options: ScaffoldBaseProjectOptions): 
       "aiPackageVersion",
       options.aiPackageVersion ?? DEFAULT_AI_PACKAGE_VERSION,
     ),
-    // Channels and connections scaffolded later (`eve add channel/slack`,
+    // Channels and connections scaffolded later (`chip add channel/slack`,
     // possibly while `eve dev` is running) import `@vercel/connect`; shipping
     // it from init means adding them never introduces a missing dependency.
     connectPackageVersion: resolveVersionToken(

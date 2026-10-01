@@ -1,6 +1,6 @@
 ## Build it out, then verify
 
-Work from the project directory. Once eve is installed, the full docs are bundled
+Work from the project directory. Once Chip is installed, the full docs are bundled
 with the installed package and match its version exactly. In most installs, they
 are at `node_modules/eve/docs/`. In workspaces or local package installs, resolve
 the installed `eve` package location first and read its `docs/` directory. If
@@ -9,9 +9,9 @@ package docs are unavailable, use https://eve.dev/docs as a fallback. Read
 such as `connections`, `channels/slack`, or `guides/auth-and-route-protection`
 for the Vercel Connect flow.
 
-Before implementing an integration yourself, use `eve registry search <query>` or
-`eve registry list` to discover available integrations. Inspect one with
-`eve registry view <item>`, then install it with `eve add <item>`.
+Before implementing an integration yourself, use `chip registry search <query>` or
+`chip registry list` to discover available integrations. Inspect one with
+`chip registry view <item>`, then install it with `chip add <item>`.
 
 - Put the purpose in `agent/instructions.md` (the always-on system prompt),
   replacing the scaffold's placeholder with what the user said the agent should
@@ -21,7 +21,7 @@ Before implementing an integration yourself, use `eve registry search <query>` o
 
 `{{devCommand}}` starts eve's HMR development server and opens the agent's
 terminal REPL. It does not start or control this coding-agent session, so don't
-use the bare command as a background verification process. Start eve without the
+use the bare command as a background verification process. Start Chip without the
 terminal UI in a controllable background process instead:
 
     {{devCommand}} --no-ui

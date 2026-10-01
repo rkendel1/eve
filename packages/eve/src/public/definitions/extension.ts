@@ -111,7 +111,7 @@ function validateConfig(
  * ```ts
  * // extension/extension.ts
  * import { defineExtension } from "eve/extension";
- * import { z } from "zod";
+ * import { z } from "#compiled/zod/index.js";
  * export default defineExtension({ config: z.object({ apiKey: z.string() }) });
  *
  * // extension/tools/search.ts

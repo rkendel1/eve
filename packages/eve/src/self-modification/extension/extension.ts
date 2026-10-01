@@ -1,5 +1,5 @@
 import { defineExtension } from "eve/extension";
-import { z } from "zod";
+import { z } from "#compiled/zod/index.js";
 
 import type { SelfModificationAuthorization } from "../config.js";
 

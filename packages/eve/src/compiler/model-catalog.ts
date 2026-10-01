@@ -1,15 +1,19 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import type { LanguageModel } from "ai";
+
 import { z } from "#compiled/zod/index.js";
 import { AI_GATEWAY_MODELS_CATALOG_URL, vercelGatewayFetch } from "#internal/gateway.js";
+import { formatLanguageModelGatewayId } from "#internal/runtime-model.js";
 import {
+  canonicalBuiltInModelId,
   catalogModelSchema,
+  findBuiltInModelLimits,
   findCatalogModelByProviderModelId,
   findCatalogModelBySlug,
   modelCatalogLimitsFromProvider,
   modelCatalogResponseSchema,
-  normalizeCatalogModelId,
 } from "#internal/model-catalog.js";
 const COMPILED_RUNTIME_MODEL_CATALOG_CACHE_KIND = "eve-model-catalog-cache";
 const COMPILED_RUNTIME_MODEL_CATALOG_CACHE_VERSION = 2;
@@ -43,30 +47,6 @@ const compiledRuntimeModelCatalogCacheSchema = z
     version: z.literal(COMPILED_RUNTIME_MODEL_CATALOG_CACHE_VERSION),
   })
   .strict();
-
-const builtInCompiledRuntimeModelLimitsById = new Map<string, CompiledRuntimeModelLimits>([
-  [
-    "anthropic/claude-opus-4.7",
-    {
-      contextWindowTokens: 200_000,
-      maxOutputTokens: 32_000,
-    },
-  ],
-  [
-    "openai/gpt-5.4",
-    {
-      contextWindowTokens: 400_000,
-      maxOutputTokens: 128_000,
-    },
-  ],
-  [
-    "openai/gpt-5.4-mini",
-    {
-      contextWindowTokens: 400_000,
-      maxOutputTokens: 128_000,
-    },
-  ],
-]);
 
 /**
  * Loader that resolves compile-time model limits for one application build.
@@ -146,10 +126,8 @@ export function createCompiledRuntimeModelCatalogLoader(
 
   return {
     async getModelLimits(modelId) {
-      const builtInLimits =
-        builtInCompiledRuntimeModelLimitsById.get(modelId) ??
-        builtInCompiledRuntimeModelLimitsById.get(normalizeCatalogModelId(modelId));
-      if (builtInLimits !== undefined) {
+      const builtInLimits = findBuiltInModelLimits(modelId);
+      if (builtInLimits !== undefined && builtInLimits !== null) {
         return builtInLimits;
       }
 
@@ -176,6 +154,21 @@ export function createCompiledRuntimeModelCatalogLoader(
     },
 
     async getByProviderModelId(provider, providerModelId) {
+      // A direct provider instance has no gateway id of its own, so consult the
+      // built-in table with the `provider/model` form its id would take. A
+      // provider may carry a dotted sub-path (`openai.responses`), so it is
+      // normalized exactly as the reference id is. Only an unknown model falls
+      // through to the catalog.
+      const providerModelKey = formatLanguageModelGatewayId({
+        provider,
+        modelId: providerModelId,
+      } as LanguageModel);
+      const builtIn = findBuiltInModelLimits(providerModelKey);
+      const builtInSlug = canonicalBuiltInModelId(providerModelKey);
+      if (builtIn !== null && builtInSlug !== null) {
+        return { slug: builtInSlug, limits: builtIn };
+      }
+
       let resolved = await resolveModelsFromCacheOrFetch();
       if (resolved === null) return null;
 

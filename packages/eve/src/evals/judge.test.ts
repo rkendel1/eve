@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   summary: vi.fn(),
 }));
 
-vi.mock("autoevals", () => ({
+vi.mock("#compiled/autoevals/index.js", () => ({
   ClosedQA: mocks.closedQA,
   Factuality: mocks.factuality,
   Sql: mocks.sql,

@@ -418,7 +418,7 @@ describe("app runtime dependency tracing", () => {
     }
 
     // No just-bash sandbox config: the engine package resolves in this
-    // workspace (it is an eve devDependency), but resolvability is not
+    // workspace (it is an chip devDependency), but resolvability is not
     // opt-in — nothing of just-bash may reach the hosted output.
     const dockerOutputDir = await buildApplication(
       await createMinimalApp({ justBashEngine: false, label: "docker" }),

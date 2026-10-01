@@ -29,14 +29,14 @@ describe("initAgentInstructions", () => {
     expect(instructions).toContain("--model provider/model-id");
     expect(instructions).toContain("--reasoning effort");
     // `npx` runs without a prior install and is package-manager agnostic, so the
-    // pre-scaffold guide renders the universal `npx eve dev` through the shared
+    // pre-scaffold guide renders the universal `npx chip dev` through the shared
     // prompt renderer rather than a launcher-specific command.
     expect(instructions).toContain("npx eve@latest init <name>");
     expect(instructions).toContain("npx eve@latest extension init <name>");
     expect(instructions).toContain("full docs are bundled");
     expect(instructions).toContain("node_modules/eve/docs/");
     expect(instructions).toContain("resolve\nthe installed `eve` package location");
-    expect(instructions).toContain("npx eve dev --no-ui");
+    expect(instructions).toContain("npx chip dev --no-ui");
     expect(instructions).not.toContain("npm run dev");
     expect(instructions).not.toContain("starts the dev server");
     // The shared renderer resolves every placeholder, even in the pre-scaffold guide.
@@ -47,7 +47,7 @@ describe("initAgentInstructions", () => {
     const instructions = initAgentInstructions();
 
     // Channels: Slack credentials are provisioned by Connect, not hand-managed.
-    expect(instructions).toContain("eve add channel/slack");
+    expect(instructions).toContain("chip add channel/slack");
     // Connections: per-user auth wires through Connect's eve helper.
     expect(instructions).toContain("agent/connections/");
     expect(instructions).toContain("@vercel/connect/eve");
@@ -59,7 +59,7 @@ describe("initAgentInstructions", () => {
 describe("initAgentReadySummary", () => {
   it("reports the model and generated instructions path", () => {
     expect(stripAnsi(initAgentReadySummary(undefined, "/app"))).toBe(
-      "✓ Model openai/gpt-5.6-luna-fast (eve default)\n✓ Instructions /app/agent/instructions.md",
+      "✓ Model openai/gpt-5.6-luna-fast (Chip default)\n✓ Instructions /app/agent/instructions.md",
     );
     expect(stripAnsi(initAgentReadySummary("openai/gpt-5.5", "/app"))).toContain(
       "✓ Model openai/gpt-5.5\n",
@@ -68,7 +68,7 @@ describe("initAgentReadySummary", () => {
 
   it("reports the agents directory for a workspace", () => {
     expect(stripAnsi(initAgentReadySummary(undefined, "/app", { workspace: true }))).toBe(
-      "✓ Model openai/gpt-5.6-luna-fast (eve default)\n✓ Agents /app/agents",
+      "✓ Model openai/gpt-5.6-luna-fast (Chip default)\n✓ Agents /app/agents",
     );
   });
 });
@@ -77,7 +77,7 @@ describe("initAgentDevHandoff", () => {
   it("composes the shared sections and keeps verification headless", () => {
     const handoff = initAgentDevHandoff({
       projectPath: "/tmp/triage-bot",
-      devCommand: "npm exec -- eve dev",
+      devCommand: "npm exec -- chip dev",
     });
 
     // The intro names the scaffolded project; the shared sections then reference
@@ -87,10 +87,10 @@ describe("initAgentDevHandoff", () => {
     expect(handoff).toContain("node_modules/eve/docs/");
     expect(handoff).toContain("resolve\nthe installed `eve` package location");
     expect(handoff).toContain("agent/instructions.md");
-    expect(handoff).toContain("`eve registry search <query>`");
-    expect(handoff).toContain("`eve registry list`");
-    expect(handoff).toContain("`eve registry view <item>`");
-    expect(handoff).toContain("`eve add <item>`");
+    expect(handoff).toContain("`chip registry search <query>`");
+    expect(handoff).toContain("`chip registry list`");
+    expect(handoff).toContain("`chip registry view <item>`");
+    expect(handoff).toContain("`chip add <item>`");
     expect(handoff).not.toContain("/tmp/triage-bot/");
 
     // Shared guidance the leaner handoff used to omit now reaches it.
@@ -103,7 +103,7 @@ describe("initAgentDevHandoff", () => {
     expect(handoff).toContain("HMR development server");
     expect(handoff).toContain("does not start or control this coding-agent session");
     expect(handoff).toMatch(/controllable\s+background process/);
-    expect(handoff).toContain("npm exec -- eve dev --no-ui");
+    expect(handoff).toContain("npm exec -- chip dev --no-ui");
     expect(handoff).toMatch(/give them the interactive\s+command/);
     expect(handoff).not.toContain("{{");
   });
@@ -111,12 +111,12 @@ describe("initAgentDevHandoff", () => {
 
 describe("initAgentReplPrompt", () => {
   it("uses the shared guidance without interpolating the project path into the launch argument", () => {
-    const prompt = initAgentReplPrompt({ devCommand: "pnpm exec eve dev" });
+    const prompt = initAgentReplPrompt({ devCommand: "pnpm exec chip dev" });
 
     expect(prompt).toContain("The project at `.` is already scaffolded.");
     expect(prompt).toContain("What should the agent do?");
-    expect(prompt).toContain("`eve registry search <query>`");
-    expect(prompt).toContain("pnpm exec eve dev --no-ui");
+    expect(prompt).toContain("`chip registry search <query>`");
+    expect(prompt).toContain("pnpm exec chip dev --no-ui");
     expect(prompt).not.toContain("{{");
   });
 });
@@ -126,14 +126,14 @@ describe("initExtensionInstructions", () => {
     const instructions = initExtensionInstructions();
 
     expect(instructions).toContain("npx eve@latest extension init <name>");
-    expect(instructions).toContain("eve extension build");
-    expect(instructions).toContain("does not start eve dev");
+    expect(instructions).toContain("chip extension build");
+    expect(instructions).toContain("does not start chip dev");
     expect(instructions).not.toContain("{{");
   });
 });
 
 describe("initExtensionHandoff", () => {
-  it("describes the scaffold and mount next steps without eve dev", () => {
+  it("describes the scaffold and mount next steps without chip dev", () => {
     const handoff = initExtensionHandoff({
       packageManager: "pnpm",
       packageName: "my-crm",
@@ -142,11 +142,11 @@ describe("initExtensionHandoff", () => {
 
     expect(handoff).toContain("extension/extension.ts");
     expect(handoff).toContain("pnpm run build");
-    expect(handoff).toContain("eve extension build");
+    expect(handoff).toContain("chip extension build");
     expect(handoff).toContain('import ext from "my-crm"');
     expect(handoff).toContain("agent/extensions/my-crm.ts");
     expect(handoff).toContain("/tmp/my-crm");
-    expect(handoff).not.toContain("eve dev");
+    expect(handoff).not.toContain("chip dev");
   });
 });
 

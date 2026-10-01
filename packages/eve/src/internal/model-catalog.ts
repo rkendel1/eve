@@ -33,6 +33,65 @@ export interface ModelCatalogLimits {
   readonly maxOutputTokens?: number;
 }
 
+/**
+ * Limits eve can state for a model without asking the AI Gateway.
+ *
+ * This is the single source of truth for known model limits: the compile-time
+ * loader and the runtime catalog both consult it before falling back to a
+ * catalog request, so a known model never needs the network to resolve.
+ *
+ * Keys are gateway-style `provider/model` ids. `-thinking` variants resolve via
+ * {@link normalizeCatalogModelId}.
+ */
+const builtInModelLimitsById = new Map<string, ModelCatalogLimits>([
+  [
+    "anthropic/claude-opus-4.7",
+    {
+      contextWindowTokens: 200_000,
+      maxOutputTokens: 32_000,
+    },
+  ],
+  [
+    "openai/gpt-5.4",
+    {
+      contextWindowTokens: 400_000,
+      maxOutputTokens: 128_000,
+    },
+  ],
+  [
+    "openai/gpt-5.4-mini",
+    {
+      contextWindowTokens: 400_000,
+      maxOutputTokens: 128_000,
+    },
+  ],
+]);
+
+/**
+ * Returns eve's built-in limits for a gateway-style model id, or `null` when the
+ * model is not one it can describe without a catalog lookup.
+ *
+ * The lookup accepts `-thinking` variants; {@link canonicalBuiltInModelId} maps
+ * such an id back to the canonical slug a catalog would report, so callers can
+ * keep returning a stable `resolvedModelId`.
+ */
+export function findBuiltInModelLimits(modelId: string): ModelCatalogLimits | null {
+  return (
+    builtInModelLimitsById.get(modelId) ??
+    builtInModelLimitsById.get(normalizeCatalogModelId(modelId)) ??
+    null
+  );
+}
+
+/** Canonical slug of a built-in model id, matching the catalog's `resolvedModelId`. */
+export function canonicalBuiltInModelId(modelId: string): string | null {
+  return builtInModelLimitsById.has(modelId)
+    ? modelId
+    : builtInModelLimitsById.has(normalizeCatalogModelId(modelId))
+      ? normalizeCatalogModelId(modelId)
+      : null;
+}
+
 export function normalizeCatalogModelId(modelId: string): string {
   return modelId.endsWith(THINKING_SUFFIX) ? modelId.slice(0, -THINKING_SUFFIX.length) : modelId;
 }

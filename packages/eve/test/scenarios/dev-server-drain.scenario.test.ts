@@ -106,7 +106,7 @@ async function triggerWorkerReplacement(
   );
 }
 
-describe("eve dev drained worker replacement", () => {
+describe("chip dev drained worker replacement", () => {
   it(
     "keeps an admitted stream flowing on the retired worker across a replacement",
     async () => {

@@ -219,8 +219,8 @@ describe("CLI command registration", () => {
 
     const help = output.join("\n");
     expect(errors).toEqual([]);
-    expect(help).toContain("Usage: eve add [options] [item]");
-    expect(help).toContain("eve registry search <query>");
+    expect(help).toContain("Usage: chip add [options] [item]");
+    expect(help).toContain("chip registry search <query>");
   });
 
   it("registers JSON output and a search result limit for registry discovery commands", async () => {
@@ -281,7 +281,7 @@ describe("CLI command registration", () => {
     await runCli(["traces", "--help"], logger).catch(() => {});
 
     const help = output.join("\n");
-    expect(help).toContain("Usage: eve traces [options] [trace]");
+    expect(help).toContain("Usage: chip traces [options] [trace]");
     expect(help).not.toContain("show <trace>");
     expect(help).toContain("ls");
   });
@@ -437,7 +437,7 @@ describe("eve CLI malformed argument handling", () => {
       ),
     ).rejects.toThrow();
 
-    expect(output.join("\n")).toContain("Set up an eve agent");
+    expect(output.join("\n")).toContain("Set up a Chip agent");
   });
 
   it("still surfaces the usage error for commands other than init", async () => {
@@ -456,7 +456,7 @@ describe("eve CLI malformed argument handling", () => {
   });
 });
 
-describe("eve dev --input", () => {
+describe("chip dev --input", () => {
   it("forwards the initial draft to the interactive TUI", async () => {
     const runDevelopmentTui = await runInteractiveDev([
       "dev",
@@ -621,7 +621,7 @@ describe("eve invoke", () => {
   });
 });
 
-describe("eve dev --url protocol", () => {
+describe("chip dev --url protocol", () => {
   it("does not resolve a local application for a remote URL", async () => {
     const resolveProject = vi.fn(async () => resolvedProject("/workspace/weather"));
 
@@ -783,7 +783,7 @@ describe("eve eval --url protocol", () => {
   });
 });
 
-describe("eve dev --logs", () => {
+describe("chip dev --logs", () => {
   it("accepts sandbox as the initial TUI log mode", async () => {
     const runDevelopmentTui = await runInteractiveDev([
       "dev",
@@ -911,7 +911,7 @@ describe("eve acp", () => {
   });
 });
 
-describe("eve dev boot progress", () => {
+describe("chip dev boot progress", () => {
   it("leaves the interactive startup banner to the TUI", async () => {
     const logger = { error: vi.fn(), log: vi.fn() };
     const startHost = vi.fn(() => ({
@@ -927,7 +927,7 @@ describe("eve dev boot progress", () => {
       runCli(["dev"], logger, { runDevelopmentTui: vi.fn(async () => {}), startHost }),
     );
 
-    expect(logger.log).not.toHaveBeenCalledWith(expect.stringContaining("☰eve"));
+    expect(logger.log).not.toHaveBeenCalledWith(expect.stringContaining("☰chip"));
     expect(logger.log).not.toHaveBeenCalledWith("");
   });
 
@@ -979,7 +979,7 @@ describe("eve dev boot progress", () => {
   });
 });
 
-describe("eve dev local server ownership", () => {
+describe("chip dev local server ownership", () => {
   it("uses the host's canonical root and leaves an attached server running", async () => {
     const startHost = vi.fn(() => ({
       start: async () => ({

@@ -23,7 +23,7 @@ export function registerIntegrationCommands(input: {
 }): void {
   const { applicationContext, logger, program } = input;
 
-  const integration = program.command("integration").description("Set up an eve integration");
+  const integration = program.command("integration").description("Set up a Chip integration");
 
   agentCommand(integration.command("setup <kind>"), applicationContext)
     .description("Run a built-in integration setup flow")

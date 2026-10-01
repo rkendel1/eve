@@ -98,7 +98,7 @@ function createGenerationMarkerToolSource(marker: string, crashOnce: boolean): s
   ].join("\n");
 }
 
-describe("eve dev server workflow generations", () => {
+describe("chip dev server workflow generations", () => {
   it(
     "retries an active child Workflow on its selected generation after promotion",
     async () => {

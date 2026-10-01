@@ -164,19 +164,23 @@ export async function resolveRuntimeModelSelection(input: {
   const catalog = input.catalog ?? runtimeModelCatalogForState(input.state);
   if (typeof selectedModel === "string") {
     const id = formatLanguageModelGatewayId(selectedModel);
+    // A bare string id is gateway-routed by definition (see classifyModelRouting),
+    // so its metadata is required.
     const metadata = await resolveSelectionMetadata({
       cacheKey: `gateway:${id}`,
       catalog,
       contextWindowTokens: selection.modelContextWindowTokens,
       load: (catalog) => catalog.getByGatewayId(id),
       modelLabel: id,
+      required: true,
       state: input.state,
     });
     return {
       reference: {
-        id: metadata.resolvedModelId,
-        contextWindowTokens: metadata.contextWindowTokens,
-        maxOutputTokens: metadata.maxOutputTokens,
+        // `required: true` above means this path never returns null.
+        id: metadata!.resolvedModelId,
+        contextWindowTokens: metadata!.contextWindowTokens,
+        maxOutputTokens: metadata!.maxOutputTokens,
         providerOptions,
       },
     };
@@ -191,27 +195,30 @@ export async function resolveRuntimeModelSelection(input: {
 
   const formattedId = formatLanguageModelGatewayId(selectedModel);
   const topLevelProvider = selectedModel.provider.split(".")[0]!;
+  const isGatewayRouted = topLevelProvider === "gateway";
   const metadata = await resolveSelectionMetadata({
-    cacheKey:
-      topLevelProvider === "gateway"
-        ? `gateway:${selectedModel.modelId}`
-        : `provider:${selectedModel.provider}:${selectedModel.modelId}`,
+    cacheKey: isGatewayRouted
+      ? `gateway:${selectedModel.modelId}`
+      : `provider:${selectedModel.provider}:${selectedModel.modelId}`,
     catalog,
     contextWindowTokens: selection.modelContextWindowTokens,
     load: (catalog) =>
-      topLevelProvider === "gateway"
+      isGatewayRouted
         ? catalog.getByGatewayId(selectedModel.modelId)
         : catalog.getByProviderModelId(selectedModel.provider, selectedModel.modelId),
     modelLabel: formattedId,
+    // Only gateway-routed instances need catalog metadata; a direct provider
+    // resolves to a reference without it so the session fallback applies.
+    required: isGatewayRouted,
     state: input.state,
   });
 
   return {
     model: selectedModel,
     reference: {
-      id: metadata.resolvedModelId,
-      contextWindowTokens: metadata.contextWindowTokens,
-      maxOutputTokens: metadata.maxOutputTokens,
+      id: metadata?.resolvedModelId ?? formattedId,
+      contextWindowTokens: metadata?.contextWindowTokens,
+      maxOutputTokens: metadata?.maxOutputTokens,
       providerOptions,
     },
   };
@@ -236,8 +243,15 @@ async function resolveSelectionMetadata(input: {
   readonly contextWindowTokens?: number;
   readonly load: (catalog: RuntimeModelCatalog) => Promise<RuntimeModelMetadata | null>;
   readonly modelLabel: string;
+  /**
+   * Whether an unresolvable model must fail. Gateway-routed models require
+   * catalog metadata because the Gateway resolves the concrete upstream model
+   * from the id; direct-provider models carry their own provider and must stay
+   * usable without AI Gateway.
+   */
+  readonly required: boolean;
   readonly state: ContextAccessor;
-}): Promise<RuntimeModelMetadata> {
+}): Promise<RuntimeModelMetadata | null> {
   if (input.contextWindowTokens !== undefined) {
     return {
       contextWindowTokens: input.contextWindowTokens,
@@ -251,8 +265,24 @@ async function resolveSelectionMetadata(input: {
     return cached;
   }
 
-  const resolved = await input.load(input.catalog);
+  let resolved: RuntimeModelMetadata | null;
+  try {
+    resolved = await input.load(input.catalog);
+  } catch (error) {
+    if (input.required) {
+      throw error;
+    }
+    // A direct provider does not depend on the catalog, so an unreachable one
+    // degrades to the optional-metadata path instead of failing resolution.
+    resolved = null;
+  }
+
   if (resolved === null) {
+    if (!input.required) {
+      // Context-window metadata is optional on the reference; the session's
+      // existing fallback threshold applies when it is absent.
+      return null;
+    }
     throw new Error(
       `Cannot select model "${input.modelLabel}" because AI Gateway did not provide context window metadata. Return modelContextWindowTokens with this selection for an unlisted or custom model.`,
     );

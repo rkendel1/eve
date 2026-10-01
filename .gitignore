@@ -16,6 +16,7 @@ coverage/
 
 # Test artifacts
 .vitest/
+.chip-staging/
 apps/benchmarks/experiments/
 apps/benchmarks/results/
 apps/benchmarks/evals/*/PROMPT.md

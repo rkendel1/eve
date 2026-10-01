@@ -165,7 +165,7 @@ async function waitForWebSocketEvent<T>(
   });
 }
 
-describe("eve dev server live connections", () => {
+describe("chip dev server live connections", () => {
   it(
     "keeps streams and parent control routes alive while a structural candidate is prepared",
     async () => {

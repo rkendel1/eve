@@ -149,7 +149,7 @@ async function waitForToolMarker(serverUrl: string, marker: string): Promise<voi
   }, `Timed out waiting for the "${marker}" tool revision to publish.`);
 }
 
-describe("eve dev server chaos", () => {
+describe("chip dev server chaos", () => {
   it(
     "keeps every request succeeding through an authored edit storm",
     async () => {

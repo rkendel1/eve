@@ -7,6 +7,7 @@ import { ContextContainer } from "#context/container.js";
 import { RuntimeModelMetadataCacheKey } from "#context/keys.js";
 import { deserializeContext, serializeContext } from "#context/serialize.js";
 import { defineDynamic } from "#dynamic/definition.js";
+import { createCompactionConfig } from "#execution/session.js";
 import type { RuntimeModelCatalog } from "#runtime/agent/model-catalog.js";
 import {
   loadDynamicRuntimeModelDefinition,
@@ -260,6 +261,106 @@ describe("dynamic runtime model resolution", () => {
 
     expect(catalog.getByGatewayId).not.toHaveBeenCalled();
     expect(catalog.getByProviderModelId).not.toHaveBeenCalled();
+  });
+
+  it("resolves a direct-provider model without metadata, leaving compaction to the session fallback", async () => {
+    const model = createLanguageModel("openai.responses", "unlisted-model");
+    const catalog = createCatalog(null);
+
+    const resolved = await resolveRuntimeModelSelection({
+      catalog,
+      durability: "live",
+      selection: model,
+      state: new ContextContainer(),
+    });
+
+    // Metadata is optional on the reference, so nothing is invented for it and
+    // the downstream session threshold applies.
+    expect(resolved.model).toBe(model);
+    expect(resolved.reference.id).toBe("openai/unlisted-model");
+    expect(resolved.reference.contextWindowTokens).toBeUndefined();
+    expect(resolved.reference.maxOutputTokens).toBeUndefined();
+    expect(
+      createCompactionConfig({ contextWindowTokens: resolved.reference.contextWindowTokens }),
+    ).toMatchObject({
+      threshold: 100_000,
+    });
+  });
+
+  it("still fails an unresolvable gateway model", async () => {
+    await expect(
+      resolveRuntimeModelSelection({
+        catalog: createCatalog(null),
+        durability: "live",
+        selection: "custom/unknown",
+        state: new ContextContainer(),
+      }),
+    ).rejects.toThrow(/Return modelContextWindowTokens/);
+
+    await expect(
+      resolveRuntimeModelSelection({
+        catalog: createCatalog(null),
+        durability: "live",
+        selection: createLanguageModel("gateway", "unlisted-model"),
+        state: new ContextContainer(),
+      }),
+    ).rejects.toThrow(/Return modelContextWindowTokens/);
+  });
+
+  it("lets explicit metadata win over the catalog for a direct-provider model", async () => {
+    const catalog = createCatalog();
+
+    const resolved = await resolveRuntimeModelSelection({
+      catalog,
+      durability: "live",
+      selection: {
+        model: createLanguageModel("openai.responses", "gpt-5.5"),
+        modelContextWindowTokens: 128_000,
+      } as never,
+      state: new ContextContainer(),
+    });
+
+    expect(resolved.reference.contextWindowTokens).toBe(128_000);
+    expect(catalog.getByProviderModelId).not.toHaveBeenCalled();
+  });
+
+  it("degrades a direct-provider model when the catalog is unreachable", async () => {
+    const catalog: RuntimeModelCatalog = {
+      getByGatewayId: vi.fn(async () => {
+        throw new Error("the AI Gateway catalog is unreachable");
+      }),
+      getByProviderModelId: vi.fn(async () => {
+        throw new Error("the AI Gateway catalog is unreachable");
+      }),
+    };
+
+    const resolved = await resolveRuntimeModelSelection({
+      catalog,
+      durability: "live",
+      selection: createLanguageModel("openai.responses", "unlisted-model"),
+      state: new ContextContainer(),
+    });
+
+    expect(resolved.reference.id).toBe("openai/unlisted-model");
+    expect(resolved.reference.contextWindowTokens).toBeUndefined();
+  });
+
+  it("still surfaces a catalog failure for a gateway-routed model", async () => {
+    const catalog: RuntimeModelCatalog = {
+      getByGatewayId: vi.fn(async () => {
+        throw new Error("the AI Gateway catalog is unreachable");
+      }),
+      getByProviderModelId: vi.fn(async () => null),
+    };
+
+    await expect(
+      resolveRuntimeModelSelection({
+        catalog,
+        durability: "live",
+        selection: "openai/gpt-5.5",
+        state: new ContextContainer(),
+      }),
+    ).rejects.toThrow(/the AI Gateway catalog is unreachable/);
   });
 });
 

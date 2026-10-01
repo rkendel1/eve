@@ -93,7 +93,7 @@ afterEach(() => {
 });
 
 describe("runExtensionInitCommand", () => {
-  it("scaffolds an extension package and prints next steps without starting eve dev", async () => {
+  it("scaffolds an extension package and prints next steps without starting chip dev", async () => {
     const parentDirectory = await mkdtemp(join(tmpdir(), "eve-extension-init-"));
     const output = logger();
     const deps = dependencies();
@@ -120,8 +120,8 @@ describe("runExtensionInitCommand", () => {
     expect(packageJson.devDependencies?.eve).toBe("0.6.0");
     expect(packageJson.dependencies?.zod).toBe("4.0.0");
     expect(packageJson.dependencies?.ai).toBeUndefined();
-    expect(packageJson.scripts?.build).toBe("eve extension build");
-    expect(packageJson.scripts?.prepare).toBe("eve extension build");
+    expect(packageJson.scripts?.build).toBe("chip extension build");
+    expect(packageJson.scripts?.prepare).toBe("chip extension build");
     expect(packageJson.scripts?.dev).toBeUndefined();
     expect(await readFile(join(projectPath, "extension/extension.ts"), "utf8")).toContain(
       "defineExtension",
@@ -141,10 +141,10 @@ describe("runExtensionInitCommand", () => {
     expect(printed).toContain(projectPath);
     expect(printed).toContain("Initialized Git repository");
     expect(printed).toContain("extension/extension.ts");
-    expect(printed).toContain("eve extension build");
+    expect(printed).toContain("chip extension build");
     expect(printed).toContain("pnpm run build");
     expect(printed).toContain("agent/extensions/my-crm.ts");
-    expect(printed).not.toContain("eve dev");
+    expect(printed).not.toContain("chip dev");
   });
 
   it("scaffolds an extension for a coding agent with a named target", async () => {
@@ -162,7 +162,7 @@ describe("runExtensionInitCommand", () => {
     const printed = output.messages.join("\n");
     expect(printed).toContain("Created an eve extension in ");
     expect(printed).toContain("What we set up:");
-    expect(printed).not.toContain("Set up an eve agent");
+    expect(printed).not.toContain("Set up a Chip agent");
   });
 
   it("hands a coding agent the extension setup guide when the target is omitted", async () => {
@@ -178,8 +178,8 @@ describe("runExtensionInitCommand", () => {
     expect(deps.tryInitializeGit).not.toHaveBeenCalled();
     const printed = output.messages.join("\n");
     expect(printed).toContain("npx eve@latest extension init <name>");
-    expect(printed).toContain("does not start eve dev");
-    expect(printed).toContain("eve extension build");
+    expect(printed).toContain("does not start chip dev");
+    expect(printed).toContain("chip extension build");
   });
 
   it("rejects an existing project with package.json", async () => {

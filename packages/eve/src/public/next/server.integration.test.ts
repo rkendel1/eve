@@ -94,7 +94,7 @@ describe("resolveEveDestinationPrefix", () => {
     );
   });
 
-  it("suppresses low-signal eve dev startup output", async () => {
+  it("suppresses low-signal chip dev startup output", async () => {
     vi.stubEnv("NODE_ENV", "development");
     const appRoot = await createTempAppRoot();
     const child = createMockChildProcess();
@@ -140,7 +140,7 @@ async function readRegisteredOrigin(appRoot: string): Promise<string> {
     await readFile(join(appRoot, ".eve", "next-dev-server.json"), "utf8"),
   ) as { readonly origin?: unknown };
   if (typeof registry.origin !== "string") {
-    throw new Error("eve dev server registry did not record a string origin.");
+    throw new Error("chip dev server registry did not record a string origin.");
   }
   return registry.origin;
 }

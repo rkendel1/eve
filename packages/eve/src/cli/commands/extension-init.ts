@@ -5,7 +5,7 @@ import { performance } from "node:perf_hooks";
 import pc from "#compiled/picocolors/index.js";
 
 import { isCodingAgentLaunch } from "#cli/agent-detection.js";
-import { EVE_WORDMARK } from "#cli/banner.js";
+import { CHIP_WORDMARK } from "#cli/banner.js";
 import { formatElapsed } from "#cli/format-elapsed.js";
 import { startCliLiveRow } from "#cli/ui/live-row.js";
 import { createLogger, isLogLevelEnabled } from "#internal/logging.js";
@@ -337,7 +337,7 @@ export async function runExtensionInitCommand(
 
   trackStep?.("handoff");
   logger.log(
-    `${pc.green("✓")} Created an ${EVE_WORDMARK} extension in ${pc.bold(projectPath!)} ${pc.dim(`in ${formatElapsed(agentElapsedMs!)}`)}`,
+    `${pc.green("✓")} Created an ${CHIP_WORDMARK} extension in ${pc.bold(projectPath!)} ${pc.dim(`in ${formatElapsed(agentElapsedMs!)}`)}`,
   );
   for (const mutation of workspaceRootMutations) {
     logger.log(pc.yellow(`⚠ ${formatWorkspaceRootMutationWarning(mutation)}`));

@@ -51,7 +51,7 @@ export default defineTool({
 `,
     "agent/tools/inspect_snowflake_module.ts": `import { defineTool } from "eve/tools";
 import * as snowflake from "snowflake-sdk";
-import { z } from "zod";
+import { z } from "#compiled/zod/index.js";
 
 export default defineTool({
   description: "Return the exported keys from the snowflake-sdk module namespace import.",

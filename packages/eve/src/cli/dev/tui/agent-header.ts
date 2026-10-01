@@ -1,6 +1,7 @@
 /** Builds the startup card the dev TUI commits before the first prompt. */
 
 import type { AgentInfoResult } from "#client/index.js";
+import { CHIP_WORDMARK } from "#cli/banner.js";
 import { resolveInstalledPackageInfo } from "#internal/application/package.js";
 import { clipVisible, visibleLength } from "#cli/ui/terminal-text.js";
 import { isPromptControlCommand } from "./prompt-commands.js";
@@ -46,7 +47,7 @@ export function buildAgentHeader(input: AgentHeaderInput): string[] {
   // write there do not add an untracked row beneath the live region.
   const cardWidth = Math.min(68, Math.max(0, width - 1));
 
-  const brand = `${c.dim("☰")}${c.bold("eve")} ${c.dim(`(v${version})`)}`;
+  const brand = `${c.dim("☰")}${c.bold(CHIP_WORDMARK)} ${c.dim(`(v${version})`)}`;
   if (cardWidth < 4) return [clipVisible(brand, width)];
 
   const horizontal = theme.unicode ? "─" : "-";

@@ -265,14 +265,14 @@ describe("registry commands", () => {
       item: "extension/browser",
       completedItems: [],
       message:
-        "Dependency installation stopped because pnpm requires build-script decisions. Run `pnpm approve-builds`, then retry the eve add command.",
+        "Dependency installation stopped because pnpm requires build-script decisions. Run `pnpm approve-builds`, then retry the chip add command.",
       failureCode: "pnpm_build_policy",
       rolledBack: true,
     });
     expect(logger.logs.join("\n")).not.toContain("secret-child-output");
     expect(writeFile).toHaveBeenCalledWith("/project/package.json", expect.any(String));
     expect(logger.errors).toEqual([
-      "Dependency installation stopped because pnpm requires build-script decisions. Run `pnpm approve-builds`, then retry the eve add command.",
+      "Dependency installation stopped because pnpm requires build-script decisions. Run `pnpm approve-builds`, then retry the chip add command.",
     ]);
   });
 
@@ -290,7 +290,7 @@ describe("registry commands", () => {
       item: "extension/browser",
       completedItems: [],
       message:
-        "Dependency installation failed. Retry the eve add command in a terminal for details.",
+        "Dependency installation failed. Retry the chip add command in a terminal for details.",
       failureCode: "dependency_install",
       rolledBack: false,
       changed: ["package.json"],
@@ -862,7 +862,7 @@ describe("registry commands", () => {
 
     expect(runSetupCommand).toHaveBeenCalledOnce();
     expect(logger.logs).toEqual([
-      "Setup cancelled. Run `eve add integration/linear --skip-install` when you're ready.",
+      "Setup cancelled. Run `chip add integration/linear --skip-install` when you're ready.",
     ]);
   });
 
@@ -888,7 +888,7 @@ describe("registry commands", () => {
 
     expect(runSetup).not.toHaveBeenCalled();
     expect(logger.logs).toEqual([
-      "Setup skipped. Run `eve add channel/slack --skip-install` when you're ready.",
+      "Setup skipped. Run `chip add channel/slack --skip-install` when you're ready.",
     ]);
   });
 
@@ -966,7 +966,7 @@ describe("registry commands", () => {
     expect(fake.selectMessages).toEqual(["Set up channel/slack now?"]);
     expect(runSetup).not.toHaveBeenCalled();
     expect(logger.logs).toEqual([
-      "Setup skipped. Run `eve add channel/slack --skip-install` when you're ready.",
+      "Setup skipped. Run `chip add channel/slack --skip-install` when you're ready.",
     ]);
   });
 
@@ -990,7 +990,7 @@ describe("registry commands", () => {
     );
 
     expect(logger.logs).toEqual([
-      "Setup cancelled. Run `eve add channel/slack --skip-install` when you're ready.",
+      "Setup cancelled. Run `chip add channel/slack --skip-install` when you're ready.",
     ]);
     expect(process.exitCode).toBeUndefined();
   });
@@ -1675,7 +1675,7 @@ describe("registry commands", () => {
     await runRegistryViewCommand(logger, "/project", "channel/photon-imessage");
 
     expect(logger.logs[0]).toContain("Photon iMessage\nchannel/photon-imessage");
-    expect(logger.logs[0]).toContain("Implementation  First-class eve channel");
+    expect(logger.logs[0]).toContain("Implementation  First-class Chip channel");
     expect(logger.logs[0]).toContain("Documentation   https://eve.dev/docs/channels/photon");
   });
 

@@ -239,7 +239,7 @@ describe("eve init smoke", () => {
     const readme = await readFile(join(projectDir, "README.md"), "utf8");
     expect(readme).toContain("# smoke-agent");
     expect(readme).toContain("## Getting started");
-    expect(readme).toContain("eve dev");
+    expect(readme).toContain("chip dev");
     expect(readme).toContain("## Learn more");
     expect(readme).toContain("## Deploy on Vercel");
     expect(readme).toContain("eve deploy");
@@ -387,7 +387,7 @@ describe("eve init smoke", () => {
       },
     ]);
     expect(result.stdout).toContain("Created an eve agent in ");
-    expect(result.stdout).toContain("eve dev --no-ui");
+    expect(result.stdout).toContain("chip dev --no-ui");
   });
 
   it("warns and continues when a coding agent passes the compatibility yes flag", async () => {
@@ -402,7 +402,7 @@ describe("eve init smoke", () => {
 
     expect(result.exitCode, result.stderr).toBe(0);
     expect(result.stderr).toContain("warning: --yes has no effect for eve init.");
-    expect(result.stdout).toContain("eve dev --no-ui");
+    expect(result.stdout).toContain("chip dev --no-ui");
     await expect(pathExists(join(scratch, "fumble-agent", "agent/agent.ts"))).resolves.toBe(true);
   });
 
@@ -457,7 +457,7 @@ describe("eve init smoke", () => {
         cwd: canonicalProjectDir,
       },
     ]);
-    expect(result.stdout).toContain("eve dev --no-ui");
+    expect(result.stdout).toContain("chip dev --no-ui");
   });
 
   it("rejects path-like names without writing outside the current directory", async () => {

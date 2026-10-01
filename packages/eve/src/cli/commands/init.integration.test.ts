@@ -282,7 +282,7 @@ describe("runInitCommand", () => {
     expect(output.messages[1]).toContain("in 467ms");
     expect(output.messages[2]).toContain("Installed dependencies");
     expect(output.messages[2]).toContain("in 13.2s");
-    expect(output.messages[3]).toContain("$ eve dev");
+    expect(output.messages[3]).toContain("$ chip dev");
     expect(output.messages.join("\n")).not.toContain("Instructions ");
   });
 
@@ -305,7 +305,7 @@ describe("runInitCommand", () => {
     expect(agentSource).toContain('model: "openai/gpt-5.5"');
     const messages = stripAnsi(output.messages.join("\n"));
     expect(messages).toContain("✓ Model openai/gpt-5.5");
-    expect(messages).not.toContain("openai/gpt-5.5 (eve default)");
+    expect(messages).not.toContain("openai/gpt-5.5 (Chip default)");
     expect(messages).toContain(`✓ Instructions ${join(projectPath, "agent/instructions.md")}`);
     expect(agentSource).toContain('reasoning: "high"');
     expect(deps.validateModelSlug).toHaveBeenCalledWith(
@@ -381,7 +381,7 @@ describe("runInitCommand", () => {
     expect(deps.installSelfModification).not.toHaveBeenCalled();
   });
 
-  it("opens the selected coding-agent REPL instead of starting eve dev", async () => {
+  it("opens the selected coding-agent REPL instead of starting chip dev", async () => {
     const parentDirectory = await mkdtemp(join(tmpdir(), "eve-init-repl-handoff-"));
     const output = logger();
     const deps = dependencies();
@@ -394,13 +394,13 @@ describe("runInitCommand", () => {
       expect.objectContaining({
         command: "codex",
         cwd: projectPath,
-        prompt: expect.stringContaining("pnpm exec eve dev --no-ui"),
+        prompt: expect.stringContaining("pnpm exec chip dev --no-ui"),
       }),
     );
     const prompt = deps.spawnCodingAgentRepl.mock.calls[0]?.[0].prompt;
     expect(prompt).toBe(
       initAgentReplPrompt({
-        devCommand: "pnpm exec eve dev",
+        devCommand: "pnpm exec chip dev",
       }),
     );
     expect(prompt).toContain("What should the agent do?");
@@ -1280,9 +1280,9 @@ describe("runInitCommand", () => {
     expect(deps.spawnCodingAgentRepl).not.toHaveBeenCalled();
     expect(deps.spawnPackageManager).not.toHaveBeenCalled();
     const messages = stripAnsi(output.messages.join("\n"));
-    expect(messages).toContain(`✓ Model ${DEFAULT_AGENT_MODEL_ID} (eve default)`);
+    expect(messages).toContain(`✓ Model ${DEFAULT_AGENT_MODEL_ID} (Chip default)`);
     expect(messages).toContain(`✓ Instructions ${join(projectPath, "agent/instructions.md")}`);
-    expect(messages).toContain("pnpm exec eve dev --no-ui");
+    expect(messages).toContain("pnpm exec chip dev --no-ui");
   });
 
   it("derives the agent dev handoff command from the existing project's own manager", async () => {
@@ -1298,7 +1298,7 @@ describe("runInitCommand", () => {
     await runInitCommand(output, projectRoot, ".", {}, deps);
 
     expect(deps.spawnPackageManager).not.toHaveBeenCalled();
-    expect(output.messages.join("\n")).toContain("npm exec -- eve dev");
+    expect(output.messages.join("\n")).toContain("npm exec -- chip dev");
   });
 
   it("stops before Git and dev when dependency installation fails, replaying its output", async () => {

@@ -23,7 +23,7 @@ export async function runChannelsListCommand(
   }
 
   if (channels.length === 0) {
-    logger.log("No channels defined. Run `eve add <channel>` to add one.");
+    logger.log("No channels defined. Run `chip add <channel>` to add one.");
     return;
   }
 

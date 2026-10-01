@@ -286,7 +286,8 @@ async function normalizeAuthoredModelReference(input: {
         };
       }
     } catch {
-      // Slug lookup below still resolves built-in limits and otherwise resurfaces the catalog error.
+      // The slug lookup below still resolves built-in limits, and decides
+      // whether a catalog failure is fatal based on routing.
     }
   }
 
@@ -338,17 +339,31 @@ async function withCompiledRuntimeModelLimits(
     };
   }
 
+  // A gateway-routed model resolves through the AI Gateway at runtime, so its
+  // limits are a real prerequisite and a failure must stay actionable. A
+  // direct/local provider never reaches Vercel, so missing limits only cost the
+  // compaction threshold optimization; the runtime's own fallback covers it.
+  const isGatewayRouted = model.routing.kind === "gateway";
+
   let limits: CompiledRuntimeModelLimits | null;
 
   try {
     limits = await input.modelCatalog.getModelLimits(model.id);
   } catch (error) {
+    if (!isGatewayRouted) {
+      return model;
+    }
+
     throw new Error(
       `Failed to load AI Gateway model metadata for ${input.purpose} "${model.id}". ${toErrorMessage(error)}`,
     );
   }
 
   if (limits === null) {
+    if (!isGatewayRouted) {
+      return model;
+    }
+
     throw new Error(
       `Cannot compile agent compaction because ${input.purpose} "${model.id}" does not have known AI Gateway context window metadata.`,
     );

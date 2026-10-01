@@ -3,7 +3,7 @@ import { captureVercel } from "#setup/primitives/index.js";
 import type { Dirent } from "node:fs";
 import * as fs from "node:fs/promises";
 import { extname, join } from "node:path";
-import { z } from "zod";
+import { z } from "#compiled/zod/index.js";
 
 import { readProjectLink } from "./project-resolution.js";
 import type { Prompter } from "./prompter.js";
@@ -236,7 +236,7 @@ function describeError(error: unknown): string {
  * host framework the project declares on disk (e.g. Next.js).
  *
  * A project created as a standalone eve agent keeps the `eve` preset; adding a
- * host framework via `eve add channel/web` leaves it stale, so the deploy would
+ * host framework via `chip add channel/web` leaves it stale, so the deploy would
  * build the agent instead of the host app. Since that command already deploys on
  * the user's behalf, this switches the preset directly (no prompt) and notes the
  * change. No host framework, an unlinked directory, or an already-correct preset

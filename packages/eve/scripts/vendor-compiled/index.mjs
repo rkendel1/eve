@@ -6,6 +6,7 @@
 import acpSdk from "./@agentclientprotocol/sdk.mjs";
 import anthropic from "./@ai-sdk/anthropic.mjs";
 import codeMode from "./@ai-sdk/code-mode.mjs";
+import autoevals from "./autoevals.mjs";
 import google from "./@ai-sdk/google.mjs";
 import mcp from "./@ai-sdk/mcp.mjs";
 import openai from "./@ai-sdk/openai.mjs";
@@ -30,6 +31,7 @@ import vercelOidc from "./@vercel/oidc.mjs";
 import vercelOtel from "./@vercel/otel.mjs";
 import vercelSandbox from "./@vercel/sandbox.mjs";
 import vercelSandboxDrives from "./@vercel/sandbox-drives.mjs";
+import vercelSdk from "./@vercel/sdk.mjs";
 import workflowBuilders from "./@workflow/builders.mjs";
 import workflowCore from "./@workflow/core.mjs";
 import workflowErrors from "./@workflow/errors.mjs";
@@ -60,6 +62,7 @@ import zodValidationError from "./zod-validation-error.mjs";
 export const MODULES = [
   acpSdk,
   anthropic,
+  autoevals,
   codeMode,
   chat,
   chatAdapterSlack,
@@ -99,6 +102,7 @@ export const MODULES = [
   vercelOtel,
   vercelSandbox,
   vercelSandboxDrives,
+  vercelSdk,
   workflowBuilders,
   workflowCore,
   workflowErrors,

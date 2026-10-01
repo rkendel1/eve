@@ -98,7 +98,7 @@ export function parseInvokeResumeInput(value: unknown): InvokeResult & { resume:
   if (result.success && "resume" in result.data && result.data.resume !== undefined) {
     return result.data as InvokeResult & { resume: InvokeResume };
   }
-  throw new Error("Resume JSON is not a valid resumable eve invoke result.");
+  throw new Error("Resume JSON is not a valid resumable Chip invoke result.");
 }
 
 /** JSON Schema generated from the canonical invoke result runtime schema. */

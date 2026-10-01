@@ -2,23 +2,31 @@ import pc from "#compiled/picocolors/index.js";
 
 import { resolveInstalledPackageInfo } from "#internal/application/package.js";
 
-export const EVE_WORDMARK = "eve";
+/**
+ * Executable name users invoke. The `bin` field in package.json publishes this
+ * name, so the wordmark and the help/usage text stay in one place rather than
+ * drifting from what npm actually installs.
+ *
+ * The npm package is published as `chip-framework` and the import namespace
+ * stays `eve/...`; only the executable is branded `chip`.
+ */
+export const CHIP_WORDMARK = "chip";
 
 /**
- * The boot banner shared by every CLI command that announces itself: the eve
+ * The boot banner shared by every CLI command that announces itself: the Chip
  * badge plus the installed version. Printed only by the CLI program's
  * pre-action hook so commands never compose their own variant.
  */
-export function eveCliBanner(): string {
+export function chipCliBanner(): string {
   const { version } = resolveInstalledPackageInfo();
-  return `${pc.bgBlack(pc.white(`☰${EVE_WORDMARK} `))} ${pc.dim(`v${version}`)}`;
+  return `${pc.bgBlack(pc.white(`☰${CHIP_WORDMARK} `))} ${pc.dim(`v${version}`)}`;
 }
 
 /**
- * The unstyled wordmark-and-version tag (`☰eve  v0.24.5`) — the boot banner's
+ * The unstyled wordmark-and-version tag (`☰chip  v0.54.3`) — the boot banner's
  * plain-text form. The dev TUI dims it as its parting line on teardown.
  */
-export function eveVersionTag(): string {
+export function chipVersionTag(): string {
   const { version } = resolveInstalledPackageInfo();
-  return `☰${EVE_WORDMARK}  v${version}`;
+  return `☰${CHIP_WORDMARK}  v${version}`;
 }

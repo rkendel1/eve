@@ -31,7 +31,7 @@
     "directory": "packages/eve"
   },
   "bin": {
-    "eve": "./bin/eve.js"
+    "chip": "./bin/eve.js"
   },
   "files": [
     "bin",

@@ -39,7 +39,7 @@ export function createPromptCommandHandler(
       // drift from discovery.
       if (target.kind === "remote" && !isPromptCommandAvailableFor(command.name, "remote")) {
         return {
-          message: `/${command.name} needs eve dev running the local server (it is not available with --url).`,
+          message: `/${command.name} needs chip dev running the local server (it is not available with --url).`,
         };
       }
 
@@ -49,7 +49,7 @@ export function createPromptCommandHandler(
         if (target.kind !== "local") {
           return {
             message:
-              "/model needs eve dev running the local server (it is not available with --url).",
+              "/model needs chip dev running the local server (it is not available with --url).",
           };
         }
         const appRoot = target.agentRoot ?? target.workspaceRoot;

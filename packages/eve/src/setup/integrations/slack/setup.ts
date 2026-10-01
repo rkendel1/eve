@@ -35,7 +35,7 @@ function slackbotFailureCopy(result: SlackbotFailure): { reason: string; followU
     case "not-installed":
       return {
         reason: "Slackbot is not connected to a Slack workspace. Slack channel was not added.",
-        followUp: "Re-run `eve add channel/slack` after the workspace install is complete.",
+        followUp: "Re-run `chip add channel/slack` after the workspace install is complete.",
       };
     case "cleanup-failed":
       return {
@@ -45,12 +45,12 @@ function slackbotFailureCopy(result: SlackbotFailure): { reason: string; followU
     case "connector-lookup-failed":
       return {
         reason: "Existing Slack connectors could not be inspected. Slack channel was not added.",
-        followUp: "Restore Vercel CLI access, then re-run `eve add channel/slack`.",
+        followUp: "Restore Vercel CLI access, then re-run `chip add channel/slack`.",
       };
     case "installation-check-failed":
       return {
         reason: "Slack workspace installation could not be verified. Slack channel was not added.",
-        followUp: "Verify Vercel Connect is reachable, then re-run `eve add channel/slack`.",
+        followUp: "Verify Vercel Connect is reachable, then re-run `chip add channel/slack`.",
       };
     case "existing-not-installed":
       return {
@@ -72,7 +72,7 @@ function slackbotFailureCopy(result: SlackbotFailure): { reason: string; followU
     case "create-failed":
       return {
         reason: "Slackbot creation failed.",
-        followUp: "Add it later with `eve add channel/slack`.",
+        followUp: "Add it later with `chip add channel/slack`.",
       };
   }
 }

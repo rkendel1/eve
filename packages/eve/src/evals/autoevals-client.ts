@@ -5,7 +5,7 @@ import {
   type ToolChoice,
   type ToolSet,
 } from "ai";
-import { Factuality } from "autoevals";
+import { Factuality } from "#compiled/autoevals/index.js";
 import { resolveProviderHeaders } from "#internal/gateway.js";
 
 import { toInputSchema } from "#tools/schema.js";

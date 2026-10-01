@@ -71,7 +71,7 @@ export function registerInvokeCommand(input: {
     const options = command.opts<InvokeCliOptions>();
     return options.url === undefined && options.jsonSchema !== true;
   })
-    .description("Invoke an eve agent without a terminal UI.")
+    .description("Invoke a Chip agent without a terminal UI.")
     .argument("[prompt]", "Prompt, follow-up message, or answer to a pending input")
     .option("-u, --url <url>", "Invoke an existing server URL", parseDevelopmentServerUrl)
     .option(
@@ -216,7 +216,7 @@ async function readJsonFromStdin(): Promise<unknown> {
   process.stdin.setEncoding("utf8");
   for await (const chunk of process.stdin) text += chunk;
   if (text.trim().length === 0) {
-    throw new InvalidArgumentError("--resume expected a resumable eve invoke result on stdin.");
+    throw new InvalidArgumentError("--resume expected a resumable Chip invoke result on stdin.");
   }
   try {
     return JSON.parse(text) as unknown;

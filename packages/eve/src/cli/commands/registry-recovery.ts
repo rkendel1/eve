@@ -67,7 +67,7 @@ export async function resolveRegistryItemForAdd<T>(
 
 export function setupResumeCommand(item: string): string {
   const argument = /^[\w@./:-]+$/.test(item) ? item : `'${item.replaceAll("'", `'\\''`)}'`;
-  return `eve add ${argument} --skip-install`;
+  return `chip add ${argument} --skip-install`;
 }
 
 export function setupReminder(item: string, outcome: "cancelled" | "skipped"): string {

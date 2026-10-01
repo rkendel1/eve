@@ -64,7 +64,7 @@ export async function runDeployCommand(
     }
   }
   const prompter = dependencies.createPrompter?.() ?? createPrompter();
-  prompter.intro("Deploy your eve agent to Vercel");
+  prompter.intro("Deploy your Chip agent to Vercel");
   try {
     const result = await runDeployFlow({
       appRoot,
@@ -83,7 +83,7 @@ export async function runDeployCommand(
     }
     if (result.kind === "local-model") {
       logger.error(
-        "ChatGPT subscription models use local ChatGPT credentials and cannot be deployed. Switch to an AI Gateway or server-authenticated model before running `eve deploy`.",
+        "ChatGPT subscription models use local ChatGPT credentials and cannot be deployed. Switch to an AI Gateway or server-authenticated model before running `chip deploy`.",
       );
       process.exitCode = 1;
       return;

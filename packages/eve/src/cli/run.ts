@@ -11,7 +11,7 @@ import { isCodingAgentLaunch } from "#cli/agent-detection.js";
 import type { CliApplicationContext } from "#cli/application-command.js";
 import { agentCommand } from "#cli/agent-command.js";
 import { findCliApplicationRoot, resolveCliApplicationProject } from "#cli/application-root.js";
-import { eveCliBanner } from "#cli/banner.js";
+import { CHIP_WORDMARK, chipCliBanner } from "#cli/banner.js";
 import { registerIntegrationCommands } from "#cli/commands/register-integration-commands.js";
 import { registerProjectCommands } from "#cli/commands/register-project-commands.js";
 import { registerRegistryCommands } from "#cli/commands/register-registry-commands.js";
@@ -144,14 +144,14 @@ export function createCliProgram(
   const theme = createCliTheme();
 
   program
-    .name("eve")
-    .description("Build and run an eve application.")
+    .name(CHIP_WORDMARK)
+    .description("Build and run a Chip application.")
     .version(packageVersion)
     .showHelpAfterError()
     .exitOverride()
     .hook("preAction", (_program, actionCommand) => {
       const { json } = actionCommand.opts<{ json?: boolean }>();
-      if (["info", "init"].includes(actionCommand.name()) && !json) logger.log(eveCliBanner());
+      if (["info", "init"].includes(actionCommand.name()) && !json) logger.log(chipCliBanner());
     })
     .configureOutput({
       writeErr: (message) => {
@@ -182,11 +182,11 @@ export function createCliProgram(
 
   const extension = program
     .command("extension")
-    .description("Create and build reusable eve extension packages.");
+    .description("Create and build reusable Chip extension packages.");
 
   extension
     .command("init [target]")
-    .description("Create a new eve extension package.")
+    .description("Create a new Chip extension package.")
     .option("-y, --yes", "Accepted for compatibility; has no effect")
     .action(async (target: string | undefined, options: { yes?: boolean }) => {
       if (options.yes) {
@@ -201,7 +201,7 @@ export function createCliProgram(
 
   extension
     .command("build")
-    .description("Build the current package as an eve extension.")
+    .description("Build the current package as a Chip extension.")
     .action(async () => {
       const { loadDevelopmentEnvironmentFiles } = await import("#cli/dev/environment.js");
       await loadDevelopmentEnvironmentFiles(applicationContext.root);
@@ -214,7 +214,7 @@ export function createCliProgram(
 
   program
     .command("init [target]")
-    .description("Create a new eve agent, or add one to an existing project directory.")
+    .description("Create a new Chip agent, or add one to an existing project directory.")
     .option("--channel-web-nextjs", "Add the Web Chat application (Next.js)")
     .option(
       "--agents <names>",
@@ -288,7 +288,7 @@ export function createCliProgram(
   });
 
   agentCommand(program.command("start"), applicationContext)
-    .description("Start a built eve application.")
+    .description("Start a built Chip application.")
     .option("--host <host>", "Host interface to bind")
     .option("--port <port>", "Port to listen on (defaults to $PORT, then 3000)", parsePortOption)
     .action(async (options: ProductionCliOptions) => {
@@ -331,7 +331,7 @@ export function createCliProgram(
       undefined
     );
   })
-    .description("Start the eve development server or connect to an existing URL.")
+    .description("Start the Chip development server or connect to an existing URL.")
     .argument("[url]", "Connect to an existing server URL", parseDevelopmentServerUrl)
     .option("--host <host>", "Host interface to bind")
     .option("--port <port>", "Port to listen on (defaults to $PORT, then 2000)", parsePortOption)
@@ -390,7 +390,7 @@ export function createCliProgram(
       const interactive = hasInteractiveTerminal();
       const mode = resolveDevUiMode({ options, interactive });
       telemetry.trackDevContext({ target: remoteTarget ? "remote" : "local", ui: mode });
-      if (mode === "headless") logger.log(eveCliBanner());
+      if (mode === "headless") logger.log(chipCliBanner());
       if (options.input !== undefined && mode === "headless") {
         throw new InvalidArgumentError("--input requires the interactive UI.");
       }
@@ -552,7 +552,7 @@ export function createCliProgram(
 
   const logs = program
     .command("logs")
-    .description("Inspect local `eve dev` diagnostic logs (.eve/logs).");
+    .description("Inspect local `chip dev` diagnostic logs (.eve/logs).");
 
   agentCommand(logs.command("show [logid]", { isDefault: true }), applicationContext)
     .description("Print a diagnostic log (the most recent when logid is omitted).")
@@ -572,8 +572,8 @@ export function createCliProgram(
     });
 
   const traces = agentCommand(program.command("traces [trace]"), applicationContext)
-    .usage("[options] [trace]\n       eve traces ls [options]")
-    .description("Show a local `eve dev` trace (the most recent when trace is omitted).")
+    .usage(`[options] [trace]\n       ${CHIP_WORDMARK} traces ls [options]`)
+    .description("Show a local `chip dev` trace (the most recent when trace is omitted).")
     .option("--verbose", "Expand every span with all attributes and events")
     .option("--json", "Output as JSON")
     .action(
@@ -606,7 +606,7 @@ export function createCliProgram(
     applicationContext,
     (command) => command.opts<EvalCliOptions>().url === undefined,
   )
-    .description("Run evals against an eve agent.")
+    .description("Run evals against a Chip agent.")
     .argument(
       "[evalIds...]",
       "Eval ids (or directory prefixes) to run (all discovered evals when omitted)",

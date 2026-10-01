@@ -1,4 +1,4 @@
-import { Levenshtein as AutoevalsLevenshtein } from "autoevals";
+import { Levenshtein as AutoevalsLevenshtein } from "#compiled/autoevals/index.js";
 
 import type { StandardSchemaV1 } from "#compiled/@standard-schema/spec/index.js";
 import { formatDiagnosticValue, toDiagnosticMetadataValue } from "#evals/diagnostics.js";

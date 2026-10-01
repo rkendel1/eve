@@ -452,7 +452,7 @@ async function waitForServerUrl(
       const current = output();
       reject(
         new Error(
-          `Timed out waiting for eve dev.\n\nstdout:\n${current.stdout}\n\nstderr:\n${current.stderr}`,
+          `Timed out waiting for chip dev.\n\nstdout:\n${current.stdout}\n\nstderr:\n${current.stderr}`,
         ),
       );
     }, EVENT_TIMEOUT_MS);
@@ -472,7 +472,7 @@ async function waitForServerUrl(
       reject(
         new Error(
           [
-            `eve dev exited before startup (code ${String(code)}, signal ${String(signal)}).`,
+            `chip dev exited before startup (code ${String(code)}, signal ${String(signal)}).`,
             `stdout:\n${current.stdout}`,
             `stderr:\n${current.stderr}`,
           ].join("\n\n"),

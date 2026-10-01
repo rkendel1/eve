@@ -489,7 +489,7 @@ describe("compiler model catalog", () => {
       ].join("\n"),
     );
 
-    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("catalog offline"));
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("catalog offline"));
 
     const result = await compileAgent({ startPath: appRoot });
 
@@ -498,6 +498,151 @@ describe("compiler model catalog", () => {
       id: "openai/gpt-5.4",
       maxOutputTokens: 128_000,
     });
+    // eve ships these limits, so a known built-in must never reach Vercel.
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("compiles an unknown direct-provider model when the catalog is unavailable", async () => {
+    const { agentRoot, appRoot } = await createAppRoot(
+      "eve-model-catalog-unknown-direct-provider-",
+      APP_ROOT_OPTIONS,
+    );
+
+    await writeFile(
+      join(agentRoot, "agent.ts"),
+      [
+        "const sourceModel = {",
+        '  specificationVersion: "v3",',
+        '  provider: "openai.responses",',
+        '  modelId: "gpt-9.9-uncatalogued",',
+        "  supportedUrls: {},",
+        '  async doGenerate() { throw new Error("not implemented"); },',
+        '  async doStream() { throw new Error("not implemented"); },',
+        "};",
+        "",
+        "export default { model: sourceModel };",
+        "",
+      ].join("\n"),
+    );
+
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("catalog offline"));
+
+    const result = await compileAgent({ startPath: appRoot });
+
+    // A direct provider never routes through Vercel, so missing metadata only
+    // costs the compaction threshold optimization.
+    expect(result.manifest.config.model).toMatchObject({
+      id: "openai/gpt-9.9-uncatalogued",
+      routing: { kind: "external", provider: "openai" },
+    });
+    expect(result.manifest.config.model?.contextWindowTokens).toBeUndefined();
+    expect(result.manifest.config.model?.maxOutputTokens).toBeUndefined();
+  });
+
+  it("compiles an unknown local-provider model when the catalog returns no match", async () => {
+    const { agentRoot, appRoot } = await createAppRoot(
+      "eve-model-catalog-unknown-local-provider-",
+      APP_ROOT_OPTIONS,
+    );
+
+    await writeFile(
+      join(agentRoot, "agent.ts"),
+      [
+        "const sourceModel = {",
+        '  specificationVersion: "v3",',
+        '  provider: "ollama",',
+        '  modelId: "llama3-uncatalogued",',
+        "  supportedUrls: {},",
+        '  async doGenerate() { throw new Error("not implemented"); },',
+        '  async doStream() { throw new Error("not implemented"); },',
+        "};",
+        "",
+        "export default { model: sourceModel };",
+        "",
+      ].join("\n"),
+    );
+
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () => mockCatalogResponse([]));
+
+    const result = await compileAgent({ startPath: appRoot });
+
+    expect(result.manifest.config.model).toMatchObject({
+      id: "ollama/llama3-uncatalogued",
+      routing: { kind: "external", provider: "ollama" },
+    });
+    expect(result.manifest.config.model?.contextWindowTokens).toBeUndefined();
+  });
+
+  it("still fails a gateway model whose catalog request rejects", async () => {
+    const { agentRoot, appRoot } = await createAppRoot(
+      "eve-model-catalog-gateway-rejection-",
+      APP_ROOT_OPTIONS,
+    );
+
+    await writeFile(
+      join(agentRoot, "agent.ts"),
+      ["export default {", '  model: "example/uncached-model",', "};", ""].join("\n"),
+    );
+
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("catalog offline"));
+
+    // Gateway routing genuinely depends on the AI Gateway, so a catalog
+    // rejection must stay terminal rather than degrading to a fallback.
+    await expect(compileAgent({ startPath: appRoot })).rejects.toThrow(
+      'Failed to load AI Gateway model metadata for the primary compaction trigger model "example/uncached-model". catalog offline',
+    );
+  });
+
+  it("still fails an unknown gateway model when the catalog returns no match", async () => {
+    const { agentRoot, appRoot } = await createAppRoot(
+      "eve-model-catalog-gateway-unknown-",
+      APP_ROOT_OPTIONS,
+    );
+
+    await writeFile(
+      join(agentRoot, "agent.ts"),
+      ["export default {", '  model: "example/unlisted-model",', "};", ""].join("\n"),
+    );
+
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () => mockCatalogResponse([]));
+
+    await expect(compileAgent({ startPath: appRoot })).rejects.toThrow(
+      'Cannot compile agent compaction because the primary compaction trigger model "example/unlisted-model" does not have known AI Gateway context window metadata.',
+    );
+  });
+
+  it("keeps an explicit context window authoritative for an unknown direct provider", async () => {
+    const { agentRoot, appRoot } = await createAppRoot(
+      "eve-model-catalog-explicit-direct-override-",
+      APP_ROOT_OPTIONS,
+    );
+
+    await writeFile(
+      join(agentRoot, "agent.ts"),
+      [
+        "const sourceModel = {",
+        '  specificationVersion: "v3",',
+        '  provider: "openai.responses",',
+        '  modelId: "gpt-9.9-uncatalogued",',
+        "  supportedUrls: {},",
+        '  async doGenerate() { throw new Error("not implemented"); },',
+        '  async doStream() { throw new Error("not implemented"); },',
+        "};",
+        "",
+        "export default {",
+        "  model: sourceModel,",
+        "  modelContextWindowTokens: 123456,",
+        "};",
+        "",
+      ].join("\n"),
+    );
+
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("catalog offline"));
+
+    const result = await compileAgent({ startPath: appRoot });
+
+    expect(result.manifest.config.model?.contextWindowTokens).toBe(123456);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("uses authored modelContextWindowTokens and skips the AI Gateway lookup", async () => {

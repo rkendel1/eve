@@ -7,7 +7,7 @@ the coding harness's prompt tools when available, and do not guess.
 2. Where should it be reachable? Every agent ships the built-in HTTP channel. On
    top of that:
    - **Web Chat** (a Next.js app): add it at init with `--channel-web-nextjs`.
-   - **Slack** and other platforms: add after deploy with `eve add channel/slack`.
+   - **Slack** and other platforms: add after deploy with `chip add channel/slack`.
      Credentials run through **Vercel Connect**, which provisions the bot token
      and verifies inbound webhooks, so there is no `SLACK_BOT_TOKEN` or signing
      secret to manage.
@@ -17,5 +17,5 @@ the coding harness's prompt tools when available, and do not guess.
    its auth through **Vercel Connect** (`connect()` from `@vercel/connect/eve`),
    which handles consent, encrypted token storage, and refresh.
 4. Does the user want a specific AI Gateway model or reasoning effort? If so,
-   pass its `provider/model-id` to `eve init --model` and its reasoning effort to
+   pass its `provider/model-id` to `chip init --model` and its reasoning effort to
    `--reasoning`; otherwise, use eve's defaults.

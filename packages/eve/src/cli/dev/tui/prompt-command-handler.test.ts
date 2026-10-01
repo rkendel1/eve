@@ -136,7 +136,7 @@ describe("createPromptCommandHandler", () => {
     await expect(
       handler.handle({ type: "extension", name: "model", argument: "" }, context()),
     ).resolves.toEqual({
-      message: "/model needs eve dev running the local server (it is not available with --url).",
+      message: "/model needs chip dev running the local server (it is not available with --url).",
     });
   });
 

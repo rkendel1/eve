@@ -1477,7 +1477,7 @@ export class EveTUIRunner {
 
       if (this.#session === undefined) {
         if (this.#client === undefined) {
-          throw new Error("Cannot create a session without an eve client.");
+          throw new Error("Cannot create a session without a Chip client.");
         }
         if (sendInput.message === undefined) {
           throw new Error("Cannot answer an input request before the session starts.");

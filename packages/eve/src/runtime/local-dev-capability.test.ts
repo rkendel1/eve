@@ -224,7 +224,7 @@ describe("withSuspendedSource", () => {
         "127.0.0.1",
         async () => await getLocalDevCapability(environment())?.withSuspendedSource(task),
       ),
-    ).rejects.toThrow(/Could not pause the eve development server/u);
+    ).rejects.toThrow(/Could not pause the Chip development server/u);
     expect(task).not.toHaveBeenCalled();
   });
 

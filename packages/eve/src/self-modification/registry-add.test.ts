@@ -189,7 +189,7 @@ describe("addLocalRegistryItem", () => {
   it("refuses to run without the development capability", async () => {
     await expect(
       addLocalRegistryItem("extension/browserbase", { getCapability: () => undefined }),
-    ).rejects.toThrow(/only be installed while `eve dev` is running/u);
+    ).rejects.toThrow(/only be installed while `chip dev` is running/u);
   });
 
   it("hands a setup-bearing item over without installing anything", async () => {
@@ -201,7 +201,7 @@ describe("addLocalRegistryItem", () => {
 
     expect(result.status).toBe("needs-terminal");
     expect(result.title).toBe("Slack");
-    expect(result.nextCommand).toBe("eve add channel/slack");
+    expect(result.nextCommand).toBe("chip add channel/slack");
     expect(calls).toHaveLength(0);
   });
 
@@ -409,8 +409,8 @@ describe("handoffMessage", () => {
         title: "Slack",
       }),
     ).toEqual({
-      message: expect.stringContaining("`eve add channel/slack`"),
-      nextCommand: "eve add channel/slack",
+      message: expect.stringContaining("`chip add channel/slack`"),
+      nextCommand: "chip add channel/slack",
     });
   });
 

@@ -5,7 +5,7 @@ import type { PackageManagerKind } from "../../package-manager.js";
 import { pinnedNodeEngineMajor } from "../../node-engine.js";
 import { pathExists, writeTextFile } from "../files.js";
 import { blockingCreateInPlaceEntries } from "../create-in-place.js";
-import { resolveVersionToken } from "../version-tokens.js";
+import { resolveFrameworkPackageName, resolveVersionToken } from "../version-tokens.js";
 import {
   applyPackageManagerWorkspaceConfiguration,
   isPackageManagerWorkspaceMember,
@@ -47,6 +47,10 @@ function renderTemplate(content: string, ctx: ExtensionTemplateContext): string 
  * structured. Tokens are still substituted by {@link renderTemplate}.
  */
 function packageJsonTemplate(includeRootOnlyFields: boolean): string {
+  // Built with computed keys rather than tokens: JSON.stringify emits the key
+  // itself, so a `__TOKEN__` placeholder inside the object literal would be
+  // written literally instead of substituted.
+  const frameworkPackage = resolveFrameworkPackageName();
   const packageJson = {
     name: "__EVE_INIT_APP_NAME__",
     version: "0.0.0",
@@ -78,11 +82,11 @@ function packageJsonTemplate(includeRootOnlyFields: boolean): string {
     },
     devDependencies: {
       "@types/node": "__EVE_INIT_TYPES_NODE_VERSION__",
-      eve: "__EVE_INIT_PACKAGE_VERSION__",
+      [frameworkPackage]: "__EVE_INIT_PACKAGE_VERSION__",
       typescript: "__EVE_INIT_TYPESCRIPT_VERSION__",
     },
     peerDependencies: {
-      eve: "*",
+      [frameworkPackage]: "*",
     },
   };
 

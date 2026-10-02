@@ -6,7 +6,7 @@ import type { NodeEngineOverride } from "../../node-engine.js";
 import type { AgentReasoningDefinition } from "../../../shared/agent-definition.js";
 import { pathExists, writeTextFile } from "../files.js";
 import { patchPackageJson, type PackageJsonPatch } from "../update/package-json.js";
-import { resolveVersionToken } from "../version-tokens.js";
+import { resolveFrameworkPackageName, resolveVersionToken } from "../version-tokens.js";
 import {
   applyPackageManagerWorkspaceConfiguration,
   isPackageManagerWorkspaceMember,
@@ -142,7 +142,9 @@ export async function addAgentToProject(
   const wanted: Record<string, string> = {
     "@vercel/connect": connectVersion,
     ai: aiVersion,
-    eve: formatEveDependencySpecifier(evePackage.version),
+    // The running package's own name, so an add-to-existing-project never
+    // installs the other published package under this name.
+    [resolveFrameworkPackageName()]: formatEveDependencySpecifier(evePackage.version),
     zod: zodVersion,
   };
   const additions: Record<string, string> = {};

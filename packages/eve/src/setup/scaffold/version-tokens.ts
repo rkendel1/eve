@@ -54,7 +54,47 @@ const EVE_PACKAGE_NAME = "eve";
 // would silently pin the consumer's catalog versions instead of failing loudly.
 const DEV_TREE_MARKER = "scripts/stamp-version-tokens.mjs";
 
+/**
+ * The package name a generated project must depend on.
+ *
+ * It is the `name` of the package the running code lives in, which is the only
+ * value that is correct in both trees: `eve` for a source checkout and
+ * `@appport/chip` for the published artifact (staging rewrites the manifest
+ * name). Deriving it from the installed manifest keeps `chip init` from
+ * emitting a dependency that npm would resolve to the unrelated public `eve`
+ * package.
+ */
+export function resolveFrameworkPackageName(): string {
+  try {
+    const packageJson = JSON.parse(
+      readFileSync(join(findOwnPackageRoot(), "package.json"), "utf8"),
+    ) as { name?: unknown };
+    return typeof packageJson.name === "string" && packageJson.name.length > 0
+      ? packageJson.name
+      : EVE_PACKAGE_NAME;
+  } catch {
+    return EVE_PACKAGE_NAME;
+  }
+}
+
 const resolvedTokens = new Map<string, string>();
+
+/**
+ * Walks up to the manifest of the package this module was loaded from. Unlike
+ * {@link findEvePackageRoot} it accepts any `name`, because the published
+ * artifact carries the `@appport/chip` name.
+ */
+function findOwnPackageRoot(): string {
+  let directory = dirname(realpathSync(fileURLToPath(import.meta.url)));
+  while (true) {
+    if (existsSync(join(directory, "package.json"))) return directory;
+    const parent = dirname(directory);
+    if (parent === directory) {
+      throw new Error("Could not locate the package root for the installed framework.");
+    }
+    directory = parent;
+  }
+}
 
 function findEvePackageRoot(): string | undefined {
   let directory = dirname(realpathSync(fileURLToPath(import.meta.url)));

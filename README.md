@@ -41,7 +41,7 @@ Read the [documentation](https://eve.dev/docs) for the full project layout and g
 ## Quick start
 
 ```bash
-npx eve@latest init my-agent
+npx @appport/chip init my-agent
 ```
 
 This creates a new `my-agent` directory, installs its dependencies, initializes Git, and starts
@@ -50,14 +50,14 @@ the interactive terminal UI.
 To start with another AI Gateway model, pass its model ID:
 
 ```bash
-npx eve@latest init my-agent --model openai/gpt-5.6-terra
+npx @appport/chip init my-agent --model openai/gpt-5.6-terra
 ```
 
 To add eve to an existing project, pass a path:
 
 ```bash
 cd myapp
-npx eve@latest init .
+npx @appport/chip init .
 ```
 
 > [!NOTE]

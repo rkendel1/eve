@@ -2,17 +2,24 @@
 /**
  * Stages the publishable Chip package from the in-repo `eve` package.
  *
- * Chip ships as `chip-framework` on npm while the public import namespace
+ * Chip ships as `@appport/chip` on npm while the public import namespace
  * stays `eve/...`. Those are two different names on purpose: `eve/...` is the
  * established API surface consumers already import, so renaming it would be
  * pure churn. This script is the single, deterministic place where the
  * *publication* name diverges from that import namespace.
  *
- * It rewrites exactly one field in the staged `package.json` — `name`. Every
- * other field, and the whole file tree, is copied verbatim, so the `exports`
- * map, the `bin` entries, the `files` allow-list, and the generated `.d.ts`
- * import specifiers are untouched. The source working tree is never mutated:
- * the rewrite happens on a copy.
+ * It rewrites exactly one field in the staged `package.json` — `name` — and
+ * retargets the staged runtime's bare `eve` self-imports at that new name, so
+ * the published package resolves them through Node's package self-reference
+ * instead of fetching the unrelated public `eve` package from the registry.
+ * Everything else, including the `exports` map, the `bin` entries, the `files`
+ * allow-list, and the generated `.d.ts` import specifiers, is copied verbatim.
+ * The source working tree is never mutated: the rewrite happens on a copy.
+ *
+ * The two rewrites must agree. `chip init` derives the dependency it writes
+ * into a generated project from the installed manifest name, and this pass
+ * rewrites the framework import specifiers in that same project's generated
+ * source, so both land on `@appport/chip`.
  *
  * Usage:
  *   node scripts/prepare-chip-package.mjs [--out <dir>] [--package <dir>] [--pack]
@@ -28,17 +35,17 @@
  * requirement still holds for the published tarball.
  */
 import { spawnSync } from "node:child_process";
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** Name the framework is published and installed under. */
-export const PUBLISHED_PACKAGE_NAME = "chip-framework";
+export const PUBLISHED_PACKAGE_NAME = "@appport/chip";
 
 /**
  * Name the repository package keeps. It doubles as the public import
  * namespace, so it must not drift: the staged artifact is published as
- * `chip-framework` but still resolves `eve/...` for consumers that alias it.
+ * `@appport/chip` but still resolves `eve/...` for consumers that alias it.
  */
 export const SOURCE_PACKAGE_NAME = "eve";
 
@@ -188,6 +195,65 @@ function copyPackageLicense(stagingPackageDir) {
 }
 
 /**
+ * Matches a bare `eve` / `eve/...` module specifier in a real import, export,
+ * `require`, or dynamic-`import` position.
+ *
+ * Anchoring on the specifier position rather than the bare word is what keeps
+ * generated source templates correct: `agent/channels/eve.ts` and similar
+ * strings inside the scaffold are written as `from "eve/connections"`, so they
+ * are real specifiers and must be retargeted alongside the runtime's own
+ * imports. Requiring the quote keeps unrelated text — a channel slug, prose, a
+ * version token — out of the rewrite.
+ */
+const EVE_SPECIFIER_PATTERN =
+  /(?<=\b(?:from|import|require)\s*\(?\s*)(["'])(eve(?:\/[^"'\n]*)?)\1/gu;
+
+/** Retargets bare `eve` self-references in one file's text. */
+export function retargetEveSpecifiers(source, publishedName = PUBLISHED_PACKAGE_NAME) {
+  return source.replace(EVE_SPECIFIER_PATTERN, (_match, quote, specifier) => {
+    if (specifier === publishedName) return `${quote}${specifier}${quote}`;
+    return `${quote}${publishedName}${specifier.slice(SOURCE_PACKAGE_NAME.length)}${quote}`;
+  });
+}
+
+/**
+ * Retargets bare `eve` self-references across a staged package.
+ *
+ * Only the shipped runtime and its declarations are rewritten. Vendored
+ * third-party code under `dist/src/compiled/` is left alone: it never imports
+ * the framework, and rewriting it would risk corrupting upstream sources.
+ */
+async function retargetStagedSelfImports(stagingPackageDir, publishedName) {
+  const distRoot = join(stagingPackageDir, "dist", "src");
+  let rewritten = 0;
+  for await (const file of walkFiles(distRoot)) {
+    if (!file.endsWith(".js") && !file.endsWith(".d.ts")) continue;
+    if (file.split(sep).includes("compiled")) continue;
+    const source = await readFile(file, "utf8");
+    const next = retargetEveSpecifiers(source, publishedName);
+    if (next !== source) {
+      await writeFile(file, next, "utf8");
+      rewritten += 1;
+    }
+  }
+  return rewritten;
+}
+
+async function* walkFiles(directory) {
+  let entries;
+  try {
+    entries = await readdir(directory, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    const full = join(directory, entry.name);
+    if (entry.isDirectory()) yield* walkFiles(full);
+    else if (entry.isFile()) yield full;
+  }
+}
+
+/**
  * Copies the package into a staging directory and rewrites only the published
  * name there. Returns the staged manifest so callers can assert on it.
  */
@@ -212,9 +278,14 @@ export async function stagePublishedPackage(options = {}) {
   const publishedManifest = buildPublishedManifest(sourceManifest, catalog);
   await writeFile(stagedManifestPath, `${JSON.stringify(publishedManifest, null, 2)}\n`, "utf8");
 
+  const retargetedFiles = await retargetStagedSelfImports(
+    stagingPackageDir,
+    publishedManifest.name,
+  );
+
   copyPackageLicense(stagingPackageDir);
 
-  return { stagingPackageDir, publishedManifest };
+  return { stagingPackageDir, publishedManifest, retargetedFiles };
 }
 
 /** Packs the staged package. Fails closed if npm cannot produce a tarball. */
@@ -234,11 +305,13 @@ function packStagedPackage(stagingPackageDir, stagingRoot) {
 
 if (import.meta.main) {
   const options = parseArgs(process.argv.slice(2));
-  const { stagingPackageDir, publishedManifest } = await stagePublishedPackage(options);
+  const { stagingPackageDir, publishedManifest, retargetedFiles } =
+    await stagePublishedPackage(options);
   const summary = {
     stagedTo: stagingPackageDir,
     name: publishedManifest.name,
     version: publishedManifest.version,
+    retargetedSelfImportFiles: retargetedFiles,
   };
   if (options.pack) {
     summary.tarball = packStagedPackage(stagingPackageDir, options.out);

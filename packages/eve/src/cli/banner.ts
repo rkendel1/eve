@@ -7,7 +7,7 @@ import { resolveInstalledPackageInfo } from "#internal/application/package.js";
  * name, so the wordmark and the help/usage text stay in one place rather than
  * drifting from what npm actually installs.
  *
- * The npm package is published as `chip-framework` and the import namespace
+ * The npm package is published as `@appport/chip` and the import namespace
  * stays `eve/...`; only the executable is branded `chip`.
  */
 export const CHIP_WORDMARK = "chip";

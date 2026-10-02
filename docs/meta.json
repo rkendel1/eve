@@ -37,6 +37,7 @@
     "audit-independent-eve",
     "audit-chip-independence",
     "audit-chip-compiler-independence",
+    "audit-chip-telemetry-independence",
     "responsible-use",
     "[Benchmarks](/benchmarks)"
   ]

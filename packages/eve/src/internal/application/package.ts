@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { EVE_PACKAGE_NAME } from "#internal/package-name.js";
+import { EVE_PACKAGE_NAME, EVE_PACKAGE_NAMES, isEvePackageName } from "#internal/package-name.js";
 
 let cachedPackageInfo: InstalledPackageInfo | undefined;
 let cachedPackageLocation: PackageLocation | undefined;
@@ -70,7 +70,7 @@ const require = createRequire(resolveCurrentModulePath());
 function tryResolveVerifiedPackageRoot(packageJsonPath: string): string | undefined {
   try {
     const canonicalPackageJsonPath = realpathSync.native(packageJsonPath);
-    const packageInfo = tryReadInstalledPackageInfo(canonicalPackageJsonPath, EVE_PACKAGE_NAME);
+    const packageInfo = readOwnInstalledPackageInfo(canonicalPackageJsonPath);
 
     return packageInfo === undefined ? undefined : dirname(canonicalPackageJsonPath);
   } catch {
@@ -152,7 +152,7 @@ function tryCreatePackageLocation(packageRoot: string): PackageLocation | undefi
 }
 
 function resolveSelfPackageJsonPath(currentModulePath: string): string {
-  return createRequire(currentModulePath).resolve(`${EVE_PACKAGE_NAME}/package.json`);
+  return resolveOwnPackageJsonPath(currentModulePath);
 }
 
 /**
@@ -303,19 +303,39 @@ function normalizeInstalledPackageInfo(value: unknown): InstalledPackageInfo | u
   };
 }
 
-function tryReadInstalledPackageInfo(
-  packageJsonPath: string,
-  expectedPackageName: string,
-): InstalledPackageInfo | undefined {
-  const resolvedPackageInfo = normalizeInstalledPackageInfo(
-    JSON.parse(readFileSync(packageJsonPath, "utf8")),
-  );
-
-  if (resolvedPackageInfo?.name !== expectedPackageName) {
+/**
+ * Reads a manifest that belongs to this framework under either published
+ * identity, so the `@appport/chip` artifact recognizes its own package.json
+ * the same way a source checkout recognizes `eve`.
+ */
+function readOwnInstalledPackageInfo(packageJsonPath: string): InstalledPackageInfo | undefined {
+  try {
+    const packageInfo = normalizeInstalledPackageInfo(
+      JSON.parse(readFileSync(packageJsonPath, "utf8")),
+    );
+    return packageInfo !== undefined && isEvePackageName(packageInfo.name)
+      ? packageInfo
+      : undefined;
+  } catch {
     return undefined;
   }
+}
 
-  return resolvedPackageInfo;
+/**
+ * Resolves this package's own `package.json` through Node's module resolver,
+ * trying every identity it may be installed under.
+ */
+function resolveOwnPackageJsonPath(currentModulePath: string): string {
+  const resolver = createRequire(currentModulePath);
+  let firstError: unknown;
+  for (const name of EVE_PACKAGE_NAMES) {
+    try {
+      return resolver.resolve(`${name}/package.json`);
+    } catch (error) {
+      firstError ??= error;
+    }
+  }
+  throw firstError;
 }
 
 /**
@@ -330,7 +350,7 @@ export function resolveInstalledPackageInfo(): InstalledPackageInfo {
   const packageRootInfo =
     packageRoot === undefined
       ? undefined
-      : tryReadInstalledPackageInfo(join(packageRoot, "package.json"), EVE_PACKAGE_NAME);
+      : readOwnInstalledPackageInfo(join(packageRoot, "package.json"));
 
   if (packageRootInfo) {
     cachedPackageInfo = packageRootInfo;
@@ -338,11 +358,8 @@ export function resolveInstalledPackageInfo(): InstalledPackageInfo {
   }
 
   try {
-    const resolvedPackageJsonPath = require.resolve(`${EVE_PACKAGE_NAME}/package.json`);
-    const resolvedPackageInfo = tryReadInstalledPackageInfo(
-      resolvedPackageJsonPath,
-      EVE_PACKAGE_NAME,
-    );
+    const resolvedPackageJsonPath = resolveOwnPackageJsonPath(require.resolve("chip"));
+    const resolvedPackageInfo = readOwnInstalledPackageInfo(resolvedPackageJsonPath);
 
     if (resolvedPackageInfo) {
       cachedPackageInfo = resolvedPackageInfo;
@@ -410,7 +427,7 @@ export function resolveExpectedWorkflowVersion(): string | undefined {
 
   try {
     return readWorkflowVersionFromManifest(
-      JSON.parse(readFileSync(require.resolve(`${EVE_PACKAGE_NAME}/package.json`), "utf8")),
+      JSON.parse(readFileSync(resolveOwnPackageJsonPath(require.resolve("chip")), "utf8")),
     );
   } catch {
     return undefined;

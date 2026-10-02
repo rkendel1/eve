@@ -14,7 +14,7 @@ the current state and a fully independent product. No code changed to produce it
 **Chip is installed and runs today, but it is not yet independent.** The
 packaging layer is clean; the product layer is not.
 
-The published `chip-framework` package declares **no** Vercel dependency at all.
+The published `@appport/chip` package declares **no** Vercel dependency at all.
 Its entire runtime dependency set is `nitro` and `undici`; every `@vercel/*`
 package is a `devDependency` vendored into `dist/src/compiled/` at build time.
 Verified by running the real CLI from a clean install with every outbound socket
@@ -279,7 +279,7 @@ Chip CLI (chip)
 **Yes.**
 
 ```sh
-npm install chip-framework
+npm install @appport/chip
 chip --help
 chip --version
 ````

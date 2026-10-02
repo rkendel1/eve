@@ -16,7 +16,7 @@ This enables sharing many different capability sets. A browser extension might i
 Start with the extension scaffold:
 
 ```bash
-npx eve@latest extension init my-crm
+npx @appport/chip extension init my-crm
 ```
 
 The command creates the package, installs dependencies, and initializes Git. It includes `extension/extension.ts`, TypeScript configuration, and the package metadata required to build and publish.
@@ -233,7 +233,7 @@ You can scaffold the extension from a directory already covered by the workspace
 
 ```bash
 cd packages
-npx eve@latest extension init shared-capabilities
+npx @appport/chip extension init shared-capabilities
 ```
 
 Give the generated package the name consumers will import. Add `"private": true` if it should never be published:

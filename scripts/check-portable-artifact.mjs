@@ -15,7 +15,7 @@
  * still inline a workspace path.
  */
 import { readdir, readFile } from "node:fs/promises";
-import { dirname, join, relative, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -67,6 +67,31 @@ function findWorkspaceImports(source) {
   return specifiers;
 }
 
+/**
+ * Module specifier roots that must never survive into a published runtime.
+ *
+ * `eve` is the source-tree name: left bare it makes Node fetch the unrelated
+ * public `eve` package. `chip-framework` is the superseded publication name;
+ * a survivor means a stale build artifact rather than an intended import.
+ * `@appport/chip` is the current published identity and is therefore allowed —
+ * staging retargets specifiers onto it, and the package resolves them through
+ * Node's package self-reference.
+ */
+const FORBIDDEN_SELF_IMPORT_ROOTS = ["eve", "chip-framework"];
+
+const FORBIDDEN_SELF_IMPORT_PATTERN = new RegExp(
+  `(?<=\\b(?:from|import|require)\\s*\\(?\\s*)(["'])(?:${FORBIDDEN_SELF_IMPORT_ROOTS.join("|")})(?:/[^"'\\n]*)?\\1`,
+  "gu",
+);
+
+function findForbiddenSelfImports(source) {
+  const specifiers = [];
+  for (const match of source.matchAll(FORBIDDEN_SELF_IMPORT_PATTERN)) {
+    specifiers.push(match[0].slice(1, -1));
+  }
+  return specifiers;
+}
+
 export async function collectWorkspaceRelativeImports(root = compiledRoot) {
   const files = await walk(root);
   const findings = [];
@@ -83,8 +108,36 @@ export async function collectWorkspaceRelativeImports(root = compiledRoot) {
   return findings;
 }
 
+/**
+ * Bare `eve` self-references in shipped runtime code.
+ *
+ * Run against a *staged* tree, not `packages/eve/dist`: staging is what
+ * retargets these specifiers, so the pre-staging build legitimately still
+ * contains them.
+ */
+export async function collectForbiddenSelfImports(root = compiledRoot) {
+  const files = await walk(root);
+  const findings = [];
+  for (const file of files) {
+    const relPath = relative(root, file).split(sep).join("/");
+    if (relPath.startsWith("compiled/")) continue;
+    const offenders = findForbiddenSelfImports(await readFile(file, "utf8"));
+    for (const specifier of offenders) {
+      findings.push({ file: relPath, specifier });
+    }
+  }
+  return findings;
+}
+
+function parseRoot(argv) {
+  const index = argv.indexOf("--root");
+  return index === -1 ? undefined : resolve(repositoryRoot, argv[index + 1] ?? "");
+}
+
 if (import.meta.main) {
-  const findings = await collectWorkspaceRelativeImports();
+  const argv = process.argv.slice(2);
+  const root = parseRoot(argv);
+  const findings = await collectWorkspaceRelativeImports(root);
   if (findings.length > 0) {
     process.stderr.write(
       [
@@ -99,7 +152,26 @@ if (import.meta.main) {
     );
     process.exit(1);
   }
+
+  const selfImportFindings = await collectForbiddenSelfImports(root);
+  if (selfImportFindings.length > 0) {
+    process.stderr.write(
+      [
+        "Packed runtime code still imports the framework by its source package name:",
+        ...selfImportFindings.map(({ file, specifier }) => `  ${file}\n    → ${specifier}`),
+        "",
+        "The artifact installs as `@appport/chip`, so a bare `eve` specifier makes",
+        "Node resolve the unrelated public `eve` package from the registry, and a",
+        "`chip-framework` specifier is a stale build artifact. Staging retargets",
+        "these specifiers; any survivor means staging missed a file, or a new module",
+        "imported the framework by the wrong name.",
+        "",
+      ].join("\n"),
+    );
+    process.exit(1);
+  }
+
   process.stdout.write(
-    "[chip:check-portable-artifact] ok — no workspace-relative runtime imports.\n",
+    "[chip:check-portable-artifact] ok — no workspace-relative runtime imports and no stale framework self-imports.\n",
   );
 }

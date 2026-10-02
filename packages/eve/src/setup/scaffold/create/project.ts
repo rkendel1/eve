@@ -8,7 +8,7 @@ import { parseChatGptModelSelection } from "../../../shared/chatgpt-model.js";
 import { SUPPORTED_AUTHORED_MODULE_FILE_EXTENSIONS } from "../update/module-files.js";
 import { pathExists, writeTextFile } from "../files.js";
 import { blockingCreateInPlaceEntries } from "../create-in-place.js";
-import { resolveVersionToken } from "../version-tokens.js";
+import { resolveFrameworkPackageName, resolveVersionToken } from "../version-tokens.js";
 import {
   applyPackageManagerWorkspaceConfiguration,
   isPackageManagerWorkspaceMember,
@@ -138,6 +138,7 @@ function renderTemplate(content: string, ctx: TemplateContext): string {
     .replaceAll("__EVE_INIT_BYOK_PROVIDER__", modelProviderSlug(ctx.model))
     .replaceAll("__EVE_INIT_BYOK_ENV_VAR__", byokProviderEnvVar(ctx.model))
     .replaceAll("__EVE_INIT_PACKAGE_VERSION__", formatEveDependencySpecifier(ctx.eveVersion))
+    .replaceAll("__EVE_INIT_FRAMEWORK_PACKAGE__", resolveFrameworkPackageName())
     .replaceAll("__EVE_INIT_AI_SDK_VERSION__", ctx.aiPackageVersion)
     .replaceAll("__EVE_INIT_CONNECT_VERSION__", ctx.connectPackageVersion)
     .replaceAll("__EVE_INIT_ZOD_VERSION__", ctx.zodPackageVersion)
@@ -183,6 +184,7 @@ __EVE_INIT_REASONING__  modelOptions: {
 
 function packageJsonTemplate(includeRootOnlyFields: boolean): string {
   const rootOnlyFields = includeRootOnlyFields ? ROOT_ONLY_PACKAGE_JSON_TEMPLATE_SUFFIX : "";
+  // Quoted so the resolved name stays valid JSON regardless of its characters.
   return `{
   "name": "__EVE_INIT_APP_NAME__",
   "version": "0.0.0",
@@ -202,7 +204,7 @@ function packageJsonTemplate(includeRootOnlyFields: boolean): string {
   "dependencies": {
     "@vercel/connect": "__EVE_INIT_CONNECT_VERSION__",
     "ai": "__EVE_INIT_AI_SDK_VERSION__",
-    "eve": "__EVE_INIT_PACKAGE_VERSION__",
+    "__EVE_INIT_FRAMEWORK_PACKAGE__": "__EVE_INIT_PACKAGE_VERSION__",
     "zod": "__EVE_INIT_ZOD_VERSION__"
   },
   "devDependencies": {

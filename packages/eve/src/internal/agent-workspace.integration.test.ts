@@ -4,8 +4,33 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import {
+  EVE_PACKAGE_NAME,
+  EVE_PACKAGE_NAMES,
+  isEvePackageName,
+  PUBLISHED_PACKAGE_NAME,
+} from "#internal/package-name.js";
+
+describe("package identity", () => {
+  it("identifies the development tree as eve and the artifact as @appport/chip", () => {
+    expect(EVE_PACKAGE_NAME).toBe("eve");
+    expect(PUBLISHED_PACKAGE_NAME).toBe("@appport/chip");
+    expect(EVE_PACKAGE_NAMES).toEqual(["eve", "@appport/chip"]);
+  });
+
+  it("recognizes both identities and nothing else", () => {
+    expect(isEvePackageName("eve")).toBe(true);
+    expect(isEvePackageName("@appport/chip")).toBe(true);
+    // The superseded publication name is no longer a valid identity.
+    expect(isEvePackageName("chip-framework")).toBe(false);
+    expect(isEvePackageName("express")).toBe(false);
+    expect(isEvePackageName(undefined)).toBe(false);
+  });
+});
+
 import { createMemoryProjectSource } from "#discover/project-source.js";
 import { resolveDiscoveryProject } from "#discover/project.js";
+import { findEveProjectRoot, isEveProjectRoot } from "#internal/eve-project-root.js";
 import { findEveProjectContext, resolveEveProjectContext } from "#internal/project-context.js";
 
 async function createWorkspace(): Promise<string> {
@@ -277,10 +302,120 @@ describe("resolveEveProjectContext", () => {
     await expect(findEveProjectContext(packageRoot)).resolves.toBeUndefined();
   });
 
-  it("rejects an eve package without agent files", async () => {
+  // Ownership now requires agent structure, so a package that declares the
+  // framework without an agent directory is not a project at all — it is the
+  // shape `npm install @appport/chip` leaves in an ordinary consumer host.
+  it("does not treat an eve package without agent files as a project", async () => {
     const root = await mkdtemp(join(tmpdir(), "eve-invalid-shape-"));
     await writeFile(join(root, "package.json"), JSON.stringify({ dependencies: { eve: "*" } }));
 
-    await expect(resolveEveProjectContext(root)).rejects.toThrow(/found no agent files/);
+    await expect(findEveProjectContext(root)).resolves.toBeUndefined();
+    await expect(resolveEveProjectContext(root)).rejects.toThrow(/No eve project contains/);
+  });
+});
+
+/**
+ * Project ownership used to be `dependencies.eve` alone, which made a published
+ * `@appport/chip` project undiscoverable to its own CLI — `chip dev` reported
+ * "No eve project contains …" in a project `chip init` had just generated.
+ *
+ * Ownership now requires agent structure in addition to a framework dependency
+ * of either name. Structure alone is not enough either: `npm install
+ * @appport/chip` writes the framework into any ordinary host directory, so
+ * treating that dependency as ownership made every consumer host look like an
+ * agent project and broke `chip init` inside one.
+ */
+describe("project ownership", () => {
+  async function createProject(
+    prefix: string,
+    files: readonly string[],
+    directories: readonly string[],
+    dependencies: Record<string, string>,
+  ): Promise<string> {
+    const root = await mkdtemp(join(tmpdir(), prefix));
+    await mkdir(root, { recursive: true });
+    await Promise.all(directories.map((dir) => mkdir(join(root, dir), { recursive: true })));
+    await Promise.all(
+      files.map((file) =>
+        writeFile(join(root, file), file.endsWith(".json") ? JSON.stringify({ dependencies }) : ""),
+      ),
+    );
+    return root;
+  }
+
+  it("detects a published project that depends on @appport/chip", async () => {
+    const root = await createProject("chip-published-project-", ["package.json"], ["agent"], {
+      "@appport/chip": "^0.54.3",
+    });
+
+    await expect(isEveProjectRoot(root)).resolves.toBe(true);
+    await expect(findEveProjectContext(root)).resolves.toEqual({
+      appRoot: root,
+      environmentRoot: root,
+      kind: "standalone",
+    });
+  });
+
+  it("still detects a development project that depends on eve", async () => {
+    const root = await createProject("chip-dev-project-", ["package.json"], ["agent"], {
+      eve: "workspace:*",
+    });
+
+    await expect(isEveProjectRoot(root)).resolves.toBe(true);
+  });
+
+  it("detects a flat agent project with no agent/ directory", async () => {
+    const root = await createProject("chip-flat-project-", ["package.json", "agent.ts"], [], {
+      "@appport/chip": "^0.54.3",
+    });
+
+    await expect(isEveProjectRoot(root)).resolves.toBe(true);
+  });
+
+  // The regression that forced the first attempted fix to be reverted: an
+  // ordinary consumer host records @appport/chip in its own package.json.
+  it("does not claim an ordinary host that only installed @appport/chip", async () => {
+    const root = await createProject(
+      "chip-host-no-structure-",
+      ["package.json"],
+      ["node_modules"],
+      { "@appport/chip": "^0.54.3" },
+    );
+
+    await expect(isEveProjectRoot(root)).resolves.toBe(false);
+    await expect(findEveProjectContext(root)).resolves.toBeUndefined();
+  });
+
+  it("does not claim a bare host that only installed eve", async () => {
+    const root = await createProject("chip-host-eve-no-structure-", ["package.json"], [], {
+      eve: "*",
+    });
+
+    await expect(isEveProjectRoot(root)).resolves.toBe(false);
+  });
+
+  it("does not claim a bare package with no framework dependency", async () => {
+    const root = await createProject("chip-host-plain-", ["package.json"], ["agent"], {
+      express: "^5.0.0",
+    });
+
+    await expect(isEveProjectRoot(root)).resolves.toBe(false);
+  });
+
+  it("walks up from a nested directory to the owning project", async () => {
+    const root = await mkdtemp(join(tmpdir(), "chip-nested-project-"));
+    const nested = join(root, "packages", "svc");
+    await mkdir(join(root, "agent"), { recursive: true });
+    await mkdir(nested, { recursive: true });
+    await writeFile(
+      join(root, "package.json"),
+      JSON.stringify({ dependencies: { "@appport/chip": "^0.54.3" } }),
+    );
+    // A nearer package boundary that owns no agent project stops the walk,
+    // unchanged from when ownership depended only on the manifest.
+    await writeFile(join(nested, "package.json"), JSON.stringify({ dependencies: {} }));
+
+    await expect(findEveProjectRoot(join(root, "packages"))).resolves.toBe(root);
+    await expect(findEveProjectRoot(nested)).resolves.toBe(undefined);
   });
 });

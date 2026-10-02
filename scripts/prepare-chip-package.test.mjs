@@ -6,10 +6,14 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
-import { collectWorkspaceRelativeImports } from "./check-portable-artifact.mjs";
+import {
+  collectForbiddenSelfImports,
+  collectWorkspaceRelativeImports,
+} from "./check-portable-artifact.mjs";
 import {
   buildPublishedManifest,
   PUBLISHED_PACKAGE_NAME,
+  retargetEveSpecifiers,
   SOURCE_PACKAGE_NAME,
   stagePublishedPackage,
 } from "./prepare-chip-package.mjs";
@@ -66,7 +70,7 @@ test("fails closed when the source package is not named eve", () => {
   // The import namespace is derived from this name, so a rename upstream must
   // stop the release instead of publishing a mismatched artifact.
   assert.throws(
-    () => buildPublishedManifest(sourceManifest({ name: "chip-framework" })),
+    () => buildPublishedManifest(sourceManifest({ name: "@appport/chip" })),
     /Expected the source package to be named "eve"/u,
   );
 });
@@ -93,7 +97,7 @@ test("staging never mutates the source working tree", async (t) => {
   assert.equal(JSON.parse(after).name, SOURCE_PACKAGE_NAME);
 });
 
-test("the staged package is named chip-framework and keeps the eve/... exports", async (t) => {
+test("the staged package is named @appport/chip and keeps the eve/... exports", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "chip-package-"));
   t.after(() => rm(root, { force: true, recursive: true }));
 
@@ -150,7 +154,7 @@ test("fails closed when a catalog: specifier has no catalog entry", () => {
 test("the real workspace package is still named eve after staging", async (t) => {
   // Guards the release boundary end to end: the repository keeps the `eve`
   // name (and therefore the `eve/...` import namespace) even though what gets
-  // published is `chip-framework`.
+  // published is `@appport/chip`.
   const root = await mkdtemp(join(tmpdir(), "chip-package-"));
   t.after(() => rm(root, { force: true, recursive: true }));
 
@@ -190,4 +194,57 @@ test("built runtime code has no workspace-relative imports", { skip: !hasBuiltDi
       .map(({ file, specifier }) => `  ${file} -> ${specifier}`)
       .join("\n")}`,
   );
+});
+
+/**
+ * The published artifact installs as `@appport/chip`, so a bare `eve`
+ * specifier makes Node fetch the unrelated public `eve` package from the
+ * registry. That is how `@appport/chip/self-modification` failed to import
+ * from a clean install. Staging retargets these, so a survivor is a staging
+ * gap rather than an intended import.
+ */
+test("staged runtime code has no bare eve self-imports", { skip: !hasBuiltDist }, async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "chip-selfimport-"));
+  t.after(() => rm(root, { force: true, recursive: true }));
+  const { stagingPackageDir } = await stagePublishedPackage({ out: root });
+
+  const findings = await collectForbiddenSelfImports(join(stagingPackageDir, "dist", "src"));
+  assert.deepEqual(
+    findings,
+    [],
+    `staged runtime code still imports the framework as \`eve\`:\n${findings
+      .map(({ file, specifier }) => `  ${file} -> ${specifier}`)
+      .join("\n")}`,
+  );
+});
+
+test("retargeting only rewrites module specifiers", () => {
+  // The runtime's own self-imports.
+  assert.equal(
+    retargetEveSpecifiers('import{defineExtension}from"eve/extension";'),
+    'import{defineExtension}from"@appport/chip/extension";',
+  );
+  assert.equal(retargetEveSpecifiers('require("eve/tools")'), 'require("@appport/chip/tools")');
+  assert.equal(retargetEveSpecifiers('await import("eve")'), 'await import("@appport/chip")');
+  // Generated project source written into the artifact: also a real specifier.
+  assert.equal(retargetEveSpecifiers('from "eve/connections"'), 'from "@appport/chip/connections"');
+  // Not specifiers: the channel slug, a path, and prose must be untouched.
+  assert.equal(retargetEveSpecifiers('slug: "eve"'), 'slug: "eve"');
+  assert.equal(retargetEveSpecifiers("node_modules/eve/docs/"), "node_modules/eve/docs/");
+  assert.equal(retargetEveSpecifiers("// the eve TUI"), "// the eve TUI");
+  assert.equal(retargetEveSpecifiers("const eve = 1;"), "const eve = 1;");
+  // Idempotent: staging a staged tree must not double-rewrite.
+  const once = retargetEveSpecifiers('from "eve/tools"');
+  assert.equal(retargetEveSpecifiers(once), once);
+});
+
+test("the scaffold dependency and its generated imports agree on one name", async () => {
+  const source = await readFile(
+    join(builtPackageRoot, "src", "setup", "scaffold", "create", "project.ts"),
+    "utf8",
+  );
+  // The dependency key is a token, so `chip init` resolves the name of the
+  // package that is actually running rather than hard-coding either name.
+  assert.match(source, /__EVE_INIT_FRAMEWORK_PACKAGE__/);
+  assert.doesNotMatch(source, /^\s*"eve": "__EVE_INIT_PACKAGE_VERSION__"/mu);
 });

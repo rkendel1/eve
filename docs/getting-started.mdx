@@ -21,7 +21,7 @@ Choose a model, provider, and channel that meet your data-processing and complia
 Run `eve init` with a project name:
 
 ```bash
-npx eve@latest init my-agent
+npx @appport/chip init my-agent
 ```
 
 The command creates the project, installs dependencies, and initializes Git. After scaffolding, eve offers to start the development server or, if a supported coding agent is installed, to open the project in the coding agent.
@@ -29,7 +29,7 @@ The command creates the project, installs dependencies, and initializes Git. Aft
 To add eve to a project that already has a `package.json`, run this command from its root before you create any `agent/` files:
 
 ```bash
-npx eve@latest init .
+npx @appport/chip init .
 ```
 
 eve adds the missing `eve`, `ai`, and `zod` dependencies without changing files the project already owns.
@@ -39,7 +39,7 @@ eve adds the missing `eve`, `ai`, and `zod` dependencies without changing files 
 To initialize the agent with a different AI Gateway model or reasoning effort, pass `--model` or `--reasoning`:
 
 ```bash
-npx eve@latest init my-agent --model openai/gpt-5.6-terra --reasoning high
+npx @appport/chip init my-agent --model openai/gpt-5.6-terra --reasoning high
 ```
 
 ## Run the agent
@@ -163,7 +163,7 @@ Run `eve info` when eve does not discover a file. It lists the discovered surfac
 If you do not want to use the scaffold, install the runtime dependencies:
 
 ```bash
-npm install eve@latest ai zod
+npm install @appport/chip ai zod
 ```
 
 Declare Node.js 24 in `package.json`, then create `agent/instructions.md` and, when you need runtime configuration, `agent/agent.ts`.

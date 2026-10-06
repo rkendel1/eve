@@ -1,5 +1,23 @@
 # eve
 
+## 0.54.4
+
+### Patch Changes
+
+- 87c8f6a: Make the published Chip artifact self-contained. `chip init` now writes the framework dependency under the name of the package that is actually running (`@appport/chip` for the published artifact), so a generated project no longer installs the unrelated public `eve` package, and the staged runtime's bare `eve` self-imports are retargeted to the published name so they resolve through Node's package self-reference instead of the registry.
+  
+  Project discovery no longer keys on a single package name. A directory counts as an agent project when it declares the framework under either identity _and_ carries agent structure, so a `@appport/chip` install resolves its own project root (`chip dev` works straight after `chip init`) while an ordinary host that merely installed the framework is still not mistaken for one.
+- 1b98611: `chip init` no longer writes a `file:` path from the publisher's machine into generated `package.json` files, and it now starts the dev server with the `chip` binary instead of trying to run a nonexistent `eve` binary (which made `npm exec`/`bun x` fetch the unrelated public `eve` package). The generated `AGENTS.md` and coding-agent guidance now point at the installed package's docs (`node_modules/@appport/chip/docs`).
+- 3576e0a: Classify known `eve init` target and workspace-input failures into bounded telemetry categories. Telemetry continues to exclude target paths, directory contents, and error messages.
+- 05d834c: Stop requiring Vercel AI Gateway model metadata when compiling agents that use a direct or local provider. Compiling an agent with a model eve already knows about no longer makes a catalog request, and an agent whose provider has no catalog entry now compiles instead of failing — the runtime's existing fallback supplies a compaction threshold when the context window is unknown. AI Gateway routing is unchanged: a gateway model whose metadata cannot be resolved still fails at compile time with the same actionable error.
+- 7829116: Add `withEve` from `eve/vercel` for composing native workspace agents with authored services in `vercel.ts`. Vercel resolves the generated agent services and transport routes before independently building each service.
+- 2d0bad9: Expose the effective model ID to model, subagent, tool, skill, and instruction resolvers through `ctx.model?.id`.
+- 13bf18d: Add `fx()` from `eve/models/fx`, which runs an agent's model through an FX model created with `createFxModel()`. Text and reasoning stream through the session, tool calls and usage map to the AI SDK, provider failures surface as `APICallError`s with FX's failure kind and retry delay, and cancelling a turn aborts the provider request.
+- 7fa514b: Add a self-modification option to the interactive `eve init` flow. Selecting it scaffolds the self-modification subagent and continues to `eve dev` without offering an external coding-agent handoff.
+- bb1ada3: The local `/model` picker now lets you type and select custom provider/model IDs that are not listed in the AI Gateway catalog.
+- a34ecf0: Preserve remote subagent caller spans across platform HTTP ingress so schema v4 `agent.dispatch` links target the dispatching `agent.action` rather than the request span. Remote dispatch now records the prior eve parent in W3C `tracestate` while retaining standard `traceparent` transport correlation.
+- 05d834c: Fix a packaging defect that made the published CLI unrunnable from an install. Dependencies imported by bare specifier (`zod`, `autoevals`, `@vercel/sdk`) were inlined into the build as relative paths into the workspace's `node_modules/.pnpm` store, so `eve --version` and `eve --help` failed with `ERR_MODULE_NOT_FOUND` as soon as the package was installed outside the repository. They are now vendored through the existing `#compiled/*` mechanism and ship inside the package.
+
 ## 0.54.3
 
 ### Patch Changes

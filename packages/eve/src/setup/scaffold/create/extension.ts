@@ -73,8 +73,8 @@ function packageJsonTemplate(includeRootOnlyFields: boolean): string {
       },
     },
     scripts: {
-      build: "eve extension build",
-      prepare: "eve extension build",
+      build: "chip extension build",
+      prepare: "chip extension build",
       typecheck: "tsc",
     },
     dependencies: {
@@ -97,7 +97,7 @@ function packageJsonTemplate(includeRootOnlyFields: boolean): string {
 }
 
 const EXTENSION_DECLARATION_TEMPLATE = `import { defineExtension } from "eve/extension";
-import { z } from "#compiled/zod/index.js";
+import { z } from "zod";
 
 export default defineExtension({
   config: z.object({

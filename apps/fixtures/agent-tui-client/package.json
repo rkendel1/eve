@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "eve build",
-    "dev": "eve dev",
-    "start": "eve start",
-    "typecheck": "eve build && tsc"
+    "build": "chip build",
+    "dev": "chip dev",
+    "start": "chip start",
+    "typecheck": "chip build && tsc"
   },
   "dependencies": {
     "eve": "workspace:*",

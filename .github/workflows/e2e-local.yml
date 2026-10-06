@@ -29,7 +29,15 @@ jobs:
 
       - name: Check changed paths
         id: filter
+        env:
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
         run: |
+          # These suites deploy or call real services; without credentials they skip.
+          if [ -z "$AI_GATEWAY_API_KEY" ]; then
+            echo "::notice::AI_GATEWAY_API_KEY is not set, so the e2e-local suites were skipped."
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "relevant=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -134,7 +142,7 @@ jobs:
         run: |
           mkdir -p "$EVE_EVAL_JUNIT_DIR"
           cd "${{ matrix.dir }}"
-          pnpm exec eve eval --strict --verbose \
+          pnpm exec chip eval --strict --verbose \
             --junit "$EVE_EVAL_JUNIT_DIR/${{ matrix.name }}-${{ matrix.model_name }}.xml"
 
       - name: Upload eval artifacts

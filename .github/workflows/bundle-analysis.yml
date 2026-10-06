@@ -161,7 +161,7 @@ jobs:
           STEPS_BASELINE_WEATHER_APP_OUTPUTS_FILTER: ${{ steps.baseline_weather_app.outputs.filter }}
         run: >-
           VERCEL=1 pnpm --filter "${STEPS_BASELINE_WEATHER_APP_OUTPUTS_FILTER}" \
-            exec eve build --skip-sandbox-prewarm
+            exec chip build --skip-sandbox-prewarm
 
       - name: Note skipped pull request base size analysis
         if: ${{ steps.mode.outputs.acknowledge_only != 'true' && github.event_name == 'pull_request' && steps.baseline_build.outcome != 'success' }}
@@ -183,7 +183,7 @@ jobs:
             --output-json "$BASELINE_REPORT_JSON"
 
       - name: Build sandbox benchmark on pull request base in Vercel mode
-        if: ${{ steps.mode.outputs.acknowledge_only != 'true' && github.event_name == 'pull_request' }}
+        if: ${{ steps.mode.outputs.acknowledge_only != 'true' && github.event_name == 'pull_request' && env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != '' }}
         id: baseline_sandbox_build
         continue-on-error: true
         working-directory: ${{ steps.baseline.outputs.root }}
@@ -205,10 +205,10 @@ jobs:
             "${token_args[@]}"
 
           profile_args=()
-          if pnpm --filter agent-tools-sandbox exec eve build --help | grep -Fq -- "--profile"; then
+          if pnpm --filter agent-tools-sandbox exec chip build --help | grep -Fq -- "--profile"; then
             profile_args=(--profile "$BASELINE_SANDBOX_BUILD_PROFILE")
           else
-            echo "Pull request base predates eve build --profile; build timing will report the current build only." >> "$GITHUB_STEP_SUMMARY"
+            echo "Pull request base predates chip build --profile; build timing will report the current build only." >> "$GITHUB_STEP_SUMMARY"
           fi
 
           # Sandbox templates key on VERCEL_PROJECT_ID at build and runtime.
@@ -217,7 +217,7 @@ jobs:
             VERCEL_ENV=preview \
             VERCEL_TARGET_ENV=preview \
             VERCEL_PROJECT_ID="$VERCEL_PROJECT_ID" \
-            pnpm --filter agent-tools-sandbox exec eve build "${profile_args[@]}"
+            pnpm --filter agent-tools-sandbox exec chip build "${profile_args[@]}"
 
       - name: Note skipped sandbox benchmark base
         if: ${{ steps.mode.outputs.acknowledge_only != 'true' && github.event_name == 'pull_request' && steps.baseline_sandbox_build.outcome != 'success' }}
@@ -232,10 +232,13 @@ jobs:
         if: ${{ steps.mode.outputs.acknowledge_only != 'true' }}
         run: >-
           VERCEL=1 pnpm --filter weather-agent
-          exec eve build --skip-sandbox-prewarm
+          exec chip build --skip-sandbox-prewarm
 
+      # The sandbox benchmark builds against a Vercel project; without
+      # credentials the timing report is skipped and the size report still runs.
       - name: Build sandbox benchmark in Vercel mode
-        if: ${{ steps.mode.outputs.acknowledge_only != 'true' }}
+        id: sandbox_build
+        if: ${{ steps.mode.outputs.acknowledge_only != 'true' && env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != '' }}
         env:
           SANDBOX_BUILD_PROFILE: ${{ runner.temp }}/sandbox-build-profile.json
         run: |
@@ -259,7 +262,7 @@ jobs:
             VERCEL_ENV=preview \
             VERCEL_TARGET_ENV=preview \
             VERCEL_PROJECT_ID="$VERCEL_PROJECT_ID" \
-            pnpm --filter agent-tools-sandbox exec eve build --profile "$SANDBOX_BUILD_PROFILE"
+            pnpm --filter agent-tools-sandbox exec chip build --profile "$SANDBOX_BUILD_PROFILE"
 
       - name: Generate bundle report
         if: ${{ steps.mode.outputs.acknowledge_only != 'true' }}
@@ -292,7 +295,7 @@ jobs:
             --output-markdown "$BUNDLE_REPORT_MARKDOWN"
 
       - name: Generate build timing report
-        if: ${{ steps.mode.outputs.acknowledge_only != 'true' }}
+        if: ${{ steps.mode.outputs.acknowledge_only != 'true' && steps.sandbox_build.outcome == 'success' }}
         env:
           BASELINE_BUILD_PROFILE: ${{ runner.temp }}/sandbox-build-profile-base.json
           BASELINE_BUILD_PROFILE_LABEL: ${{ steps.baseline.outputs.label }}
@@ -327,7 +330,11 @@ jobs:
         run: |
           cat "$BUNDLE_REPORT_MARKDOWN" > "$ANALYSIS_REPORT_MARKDOWN"
           printf '\n\n' >> "$ANALYSIS_REPORT_MARKDOWN"
-          cat "$BUILD_PROFILE_REPORT_MARKDOWN" >> "$ANALYSIS_REPORT_MARKDOWN"
+          if [ -f "$BUILD_PROFILE_REPORT_MARKDOWN" ]; then
+            cat "$BUILD_PROFILE_REPORT_MARKDOWN" >> "$ANALYSIS_REPORT_MARKDOWN"
+          else
+            echo "Build timing skipped: VERCEL_TOKEN and VERCEL_PROJECT_ID are not both set." >> "$ANALYSIS_REPORT_MARKDOWN"
+          fi
 
       - name: Publish job summary
         if: ${{ steps.mode.outputs.acknowledge_only != 'true' }}

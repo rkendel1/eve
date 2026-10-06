@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "eve build",
-    "dev": "eve dev",
-    "start": "eve start",
-    "test:e2e": "eve eval --strict"
+    "build": "chip build",
+    "dev": "chip dev",
+    "start": "chip start",
+    "test:e2e": "chip eval --strict"
   },
   "dependencies": {
     "@eve-e2e/config": "workspace:*",

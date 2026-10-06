@@ -267,10 +267,10 @@ describe("ensureChannel", () => {
     expect(packageJson).toContain('"@shikijs/core": "3.23.0"');
     expect(packageJson).toContain('"@shikijs/engine-javascript": "3.23.0"');
     expect(packageJson).toContain('"@shikijs/engine-oniguruma": "3.23.0"');
-    expect(packageJson).toContain('"build:eve": "eve build"');
+    expect(packageJson).toContain('"build:eve": "chip build"');
     expect(packageJson).toContain('"dev": "next dev"');
     expect(packageJson).toContain('"dev:eve": "chip dev"');
-    expect(packageJson).toContain('"start:eve": "eve start"');
+    expect(packageJson).toContain('"start:eve": "chip start"');
     expect(JSON.parse(packageJson)).toMatchObject({ engines: { node: "24.x" } });
     const tsconfig = JSON.parse(await readFile(join(projectRoot, "tsconfig.json"), "utf8")) as {
       include?: string[];
@@ -785,7 +785,7 @@ describe("ensureChannel", () => {
     expect(packageJson).toMatchObject({
       scripts: {
         build: "next build",
-        "build:eve": "eve build",
+        "build:eve": "chip build",
         dev: "next dev",
         start: "next start",
         test: "vitest",
@@ -1052,11 +1052,11 @@ describe("scaffoldBaseProject", () => {
     // version captured from the workspace catalog into generated projects.
     expect(JSON.parse(packageJson)).toMatchObject({
       scripts: {
-        build: "eve build",
-        deploy: "eve deploy",
+        build: "chip build",
+        deploy: "chip deploy",
         dev: "chip dev",
-        eval: "eve eval",
-        start: "eve start",
+        eval: "chip eval",
+        start: "chip start",
         typecheck: "tsc",
       },
       devDependencies: { typescript: "7.0.2" },
@@ -1090,12 +1090,12 @@ describe("scaffoldBaseProject", () => {
     expect(agentsMd).toContain("chip registry search <query> --json");
     expect(agentsMd).toContain("chip registry view <item>");
     expect(agentsMd).toContain("For a generic capability, author a tool instead.");
-    expect(agentsMd).toContain("eve add <item> --non-interactive");
+    expect(agentsMd).toContain("chip add <item> --non-interactive");
     expect(agentsMd).toContain("Exit code 0 means setup completed");
     expect(agentsMd).toContain("replace its `<JSON value>` answer placeholder");
     expect(agentsMd).toContain("docs/install-integrations.mdx");
-    expect(agentsMd).toContain("eve link --non-interactive --project <name-or-id>");
-    expect(agentsMd).toContain("eve deploy --non-interactive --yes");
+    expect(agentsMd).toContain("chip link --non-interactive --project <name-or-id>");
+    expect(agentsMd).toContain("chip deploy --non-interactive --yes");
     expect(agentsMd).toContain("Use eve to link and deploy Vercel projects");
     expect(agentsMd).toContain("Run the validation the task requests");
     // `vercel deploy` uploads everything a .vercelignore doesn't exclude, and

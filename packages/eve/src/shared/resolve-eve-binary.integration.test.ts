@@ -41,4 +41,12 @@ describe("resolveEveBinaryPath", () => {
 
     expect(await realpath(resolveEveBinaryPath(appRoot))).toBe(expected);
   });
+
+  it("resolves the framework installed under its published name", async () => {
+    const appRoot = await mkdtemp(join(tmpdir(), "eve-resolve-"));
+    await writeFile(join(appRoot, "package.json"), JSON.stringify({ name: "web" }));
+    const expected = await writeEvePackage(join(appRoot, "node_modules", "@appport", "chip"));
+
+    expect(await realpath(resolveEveBinaryPath(appRoot))).toBe(expected);
+  });
 });

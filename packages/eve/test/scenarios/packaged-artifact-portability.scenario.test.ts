@@ -51,8 +51,8 @@ describe("the packed artifact is self-contained", () => {
     const installedPackageRoot = join(projectDir, "node_modules", "eve");
     expect(existsSync(installedPackageRoot)).toBe(true);
 
-    const chip = join(projectDir, "node_modules", ".bin", "eve");
-    expect(existsSync(chip), "the package must expose an `eve` binary").toBe(true);
+    const chip = join(projectDir, "node_modules", ".bin", "chip");
+    expect(existsSync(chip), "the package must expose a `chip` binary").toBe(true);
 
     // `--version` and `--help` are the cheapest commands that still load the
     // whole command graph, which is where an unresolvable import surfaces.

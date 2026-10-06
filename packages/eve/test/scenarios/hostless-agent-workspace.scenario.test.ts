@@ -25,7 +25,7 @@ describe("hostless agent workspace", () => {
             projectId: "prj_eve_collection_scenario",
             projectName: "hostless-agent-workspace",
             settings: {
-              buildCommand: "pnpm exec eve build",
+              buildCommand: "pnpm exec chip build",
               framework: null,
               outputDirectory: null,
               rootDirectory: null,

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "eval": "eve eval --strict"
+    "eval": "chip eval --strict"
   },
   "dependencies": {
     "@eve-e2e/config": "workspace:*",

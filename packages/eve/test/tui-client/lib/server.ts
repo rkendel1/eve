@@ -140,7 +140,7 @@ export function createAgentServerCommandPlan(input: {
         "--filter",
         input.appName,
         "exec",
-        "eve",
+        "chip",
         "start",
         "--host",
         "127.0.0.1",

@@ -277,7 +277,7 @@ describe("runInitCommand", () => {
     expect(output.messages).toHaveLength(4);
     expect(output.messages[0]).toContain("Preparing project...");
     expect(output.messages[1]).toContain("✓");
-    expect(output.messages[1]).toContain("Created an eve agent in ");
+    expect(output.messages[1]).toContain("Created a chip agent in ");
     expect(output.messages[1]).toContain(projectPath);
     expect(output.messages[1]).toContain("in 467ms");
     expect(output.messages[2]).toContain("Installed dependencies");
@@ -500,7 +500,7 @@ describe("runInitCommand", () => {
         "dev",
         "--onboard",
       ]);
-      expect(output.messages[1]).toContain("Created an eve agent in ");
+      expect(output.messages[1]).toContain("Created a chip agent in ");
       expect(output.messages[1]).toContain(projectPath);
     },
   );
@@ -971,7 +971,7 @@ describe("runInitCommand", () => {
       "dev",
     ]);
     const printed = output.messages.join("\n");
-    expect(printed).toContain("Added an eve agent to ");
+    expect(printed).toContain("Added a chip agent to ");
     expect(printed).toContain("Updated existing project:");
     expect(printed).toContain("Created agent/agent.ts");
     expect(printed).toContain("Created agent/instructions.md");
@@ -1227,7 +1227,7 @@ describe("runInitCommand", () => {
 
     await expect(
       runInitCommand(output, projectRoot, ".", { channelWebNextjs: true }, deps),
-    ).rejects.toThrow("eve add channel/web");
+    ).rejects.toThrow("chip add channel/web");
 
     await expect(pathExists(join(projectRoot, "agent"))).resolves.toBe(false);
     expect(deps.runPackageManagerInstall).not.toHaveBeenCalled();
@@ -1253,7 +1253,7 @@ describe("runInitCommand", () => {
     expect(deps.selectInitHandoff).not.toHaveBeenCalled();
     expect(deps.spawnCodingAgentRepl).not.toHaveBeenCalled();
     expect(deps.spawnPackageManager).not.toHaveBeenCalled();
-    expect(output.messages.join("\n")).toContain("Created an eve agent in");
+    expect(output.messages.join("\n")).toContain("Created a chip agent in");
   });
 
   it("scaffolds and initializes Git for a coding agent but does not spawn the dev server", async () => {

@@ -96,7 +96,7 @@ describe("packed package consumption", () => {
           name: "packed-self-modification-app",
           private: true,
           type: "module",
-          scripts: { build: "eve build" },
+          scripts: { build: "chip build" },
           dependencies: {
             "@vercel/connect": "1.0.0",
             eve: `file:${eveTarball}`,

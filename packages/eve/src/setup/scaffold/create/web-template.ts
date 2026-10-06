@@ -111,11 +111,11 @@ export const WEB_APP_SIGN_IN_WITH_VERCEL_TEMPLATE_FILES = {
 export const WEB_APP_TEMPLATE_PACKAGE_JSON = {
   scripts: {
     build: "next build",
-    "build:eve": "eve build",
+    "build:eve": "chip build",
     dev: "next dev",
-    "dev:eve": "eve dev",
+    "dev:eve": "chip dev",
     start: "next start",
-    "start:eve": "eve start",
+    "start:eve": "chip start",
     typecheck: "tsc --noEmit -p tsconfig.json",
   },
   dependencies: {

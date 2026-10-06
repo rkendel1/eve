@@ -46,7 +46,8 @@ const { version } = JSON.parse(
 const published = spawnSync("npm", ["view", `${PACKAGE_NAME}@${version}`, "version"], {
   encoding: "utf8",
 });
-if (published.status === 0 && published.stdout.trim() === version) {
+const alreadyPublished = published.status === 0 && published.stdout.trim() === version;
+if (alreadyPublished && !args.has("--dry-run")) {
   console.log(
     `${PACKAGE_NAME}@${version} is already on npm; run pnpm version-packages to release.`,
   );
@@ -61,6 +62,13 @@ run(process.execPath, [join("scripts", "prepare-chip-package.mjs"), "--pack"], b
 
 const tarball = join(repositoryRoot, ".chip-staging", `appport-chip-${version}.tgz`);
 if (!existsSync(tarball)) throw new Error(`Expected the staged tarball at ${tarball}.`);
+// npm rejects a dry run of a published version, so a rehearsal stops after packing.
+if (alreadyPublished) {
+  console.log(
+    `Dry run: ${PACKAGE_NAME}@${version} is already on npm; built and verified ${tarball}.`,
+  );
+  process.exit(0);
+}
 run("npm", [
   "publish",
   tarball,

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import pc from "#compiled/picocolors/index.js";
 
 import { DEFAULT_AGENT_MODEL_ID } from "#shared/default-agent-model.js";
+import { resolveFrameworkPackageName } from "#setup/scaffold/version-tokens.js";
 
 // The two coding-agent prompts are one onboarding flow in two phases, composed
 // from the section files in `agent-prompt/`. The setup guide runs before
@@ -12,7 +13,7 @@ import { DEFAULT_AGENT_MODEL_ID } from "#shared/default-agent-model.js";
 // seeding a REPL). Both reuse the `collect-intent`, `vercel-connect`, and
 // `build-and-verify` sections verbatim, so guidance authored once reaches both.
 // `{{devCommand}}` is rendered per
-// caller; `{{workingDirectory}}` is post-scaffold only and lives in the handoff
+// caller; `{{frameworkPackage}}` is the installed package name; `{{workingDirectory}}` is post-scaffold only and lives in the handoff
 // intro. The shared sections use paths relative to the project directory so the
 // setup guide, which has no working directory yet, can reuse them unchanged.
 // Exported so `agent-instructions.test.ts` can assert these lists name exactly
@@ -43,7 +44,8 @@ function compose(
       readFileSync(new URL(`./agent-prompt/${section}`, import.meta.url), "utf8").trim(),
     )
     .join("\n\n")
-    .replaceAll("{{devCommand}}", () => options.devCommand);
+    .replaceAll("{{devCommand}}", () => options.devCommand)
+    .replaceAll("{{frameworkPackage}}", resolveFrameworkPackageName);
   const { workingDirectory } = options;
   if (workingDirectory === undefined) {
     return prompt;

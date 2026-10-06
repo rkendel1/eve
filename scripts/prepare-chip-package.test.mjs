@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import {
+  collectBuildMachinePaths,
   collectForbiddenSelfImports,
   collectWorkspaceRelativeImports,
 } from "./check-portable-artifact.mjs";
@@ -216,6 +217,22 @@ test("staged runtime code has no bare eve self-imports", { skip: !hasBuiltDist }
       .map(({ file, specifier }) => `  ${file} -> ${specifier}`)
       .join("\n")}`,
   );
+});
+
+test("flags runtime code that embeds the build machine's checkout path", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "chip-machine-path-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const checkout = join(root, "checkout");
+  const distRoot = join(root, "dist", "src");
+  await mkdir(join(distRoot, "compiled"), { recursive: true });
+  await writeFile(
+    join(distRoot, "project.js"),
+    `const contract={version:\`file:${checkout}/.chip-staging/appport-chip-9.9.9.tgz\`};\n`,
+  );
+  await writeFile(join(distRoot, "clean.js"), "const contract={version:`9.9.9`};\n");
+  await writeFile(join(distRoot, "compiled", "vendor.js"), `// built in ${checkout}\n`);
+
+  assert.deepEqual(await collectBuildMachinePaths(distRoot, checkout), [{ file: "project.js" }]);
 });
 
 test("retargeting only rewrites module specifiers", () => {

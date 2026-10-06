@@ -238,7 +238,7 @@ export const pnpmPackageManager = {
       ? { filesSkipped: [], filesWritten: [filePath] }
       : { filesSkipped: [filePath], filesWritten: [] };
   },
-  devArguments: () => ["exec", "eve", "dev"],
+  devArguments: () => ["exec", "chip", "dev"],
   installArguments: (options) => [
     "install",
     "--no-frozen-lockfile",

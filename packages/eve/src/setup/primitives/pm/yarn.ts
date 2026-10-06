@@ -5,7 +5,7 @@ export const yarnPackageManager = {
   kind: "yarn",
   scaffoldFiles: {},
   applyProjectConfiguration: applyNoProjectConfiguration,
-  devArguments: () => ["eve", "dev"],
+  devArguments: () => ["chip", "dev"],
   installArguments: () => ["install"],
   prepareArguments: (_projectRoot, args) => args,
   resolveInvocation: (args) => resolveStandardInvocation("yarn", args),

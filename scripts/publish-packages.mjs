@@ -37,8 +37,11 @@ function run(command, commandArgs, env = process.env) {
 }
 
 const [major] = process.versions.node.split(".").map(Number);
-if (major < 24)
-  throw new Error(`Publishing requires Node.js 24 or newer; running ${process.version}.`);
+if (major < 24) {
+  throw new Error(
+    `Publishing requires Node.js 24 or newer; running ${process.version}. Run \`nvm use\` (the repository's .nvmrc pins Node 24).`,
+  );
+}
 
 const { version } = JSON.parse(
   await readFile(join(repositoryRoot, "packages", "eve", "package.json"), "utf8"),

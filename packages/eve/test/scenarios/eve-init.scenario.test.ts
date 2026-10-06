@@ -260,7 +260,7 @@ describe("eve init smoke", () => {
         cwd: canonicalProjectDir,
       },
       {
-        args: ["--dir", canonicalProjectDir, "exec", "eve", "dev", "--onboard"],
+        args: ["--dir", canonicalProjectDir, "exec", "chip", "dev", "--onboard"],
         cwd: canonicalProjectDir,
       },
     ]);
@@ -299,7 +299,7 @@ describe("eve init smoke", () => {
     );
     const [installCall, devCall] = await fakePnpm.readCalls();
     expect(installCall?.args.slice(-2)).toEqual(["install", "--no-frozen-lockfile"]);
-    expect(devCall?.args.slice(-4)).toEqual(["exec", "eve", "dev", "--onboard"]);
+    expect(devCall?.args.slice(-4)).toEqual(["exec", "chip", "dev", "--onboard"]);
   });
 
   it("adds Web Chat through npm without writing pnpm configuration", async () => {
@@ -324,7 +324,7 @@ describe("eve init smoke", () => {
         cwd: canonicalProjectDir,
       },
       {
-        args: ["exec", "--", "eve", "dev", "--onboard"],
+        args: ["exec", "--", "chip", "dev", "--onboard"],
         cwd: canonicalProjectDir,
       },
     ]);
@@ -364,7 +364,7 @@ describe("eve init smoke", () => {
     );
     const calls = await fakePnpm.readCalls();
     expect(calls[0]?.args.slice(-2)).toEqual(["install", "--no-frozen-lockfile"]);
-    expect(calls[1]?.args.slice(-3)).toEqual(["exec", "eve", "dev"]);
+    expect(calls[1]?.args.slice(-3)).toEqual(["exec", "chip", "dev"]);
   });
 
   it("scaffolds the current directory for a coding agent that omits the target", async () => {
@@ -425,7 +425,7 @@ describe("eve init smoke", () => {
         cwd: canonicalProjectDir,
       },
       {
-        args: ["--dir", canonicalProjectDir, "exec", "eve", "dev", "--onboard"],
+        args: ["--dir", canonicalProjectDir, "exec", "chip", "dev", "--onboard"],
         cwd: canonicalProjectDir,
       },
     ]);

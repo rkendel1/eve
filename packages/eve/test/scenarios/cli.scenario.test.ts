@@ -422,7 +422,7 @@ describe("runCli", () => {
           ".output",
           "server",
           "index.mjs",
-        )}. Run "eve build" before "eve start".`,
+        )}. Run "chip build" before "chip start".`,
       );
     } finally {
       process.chdir(previousCwd);

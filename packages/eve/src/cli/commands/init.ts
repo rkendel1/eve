@@ -566,14 +566,14 @@ export async function runInitCommand(
   trackStep?.("handoff");
   if (result.kind === "created") {
     logger.log(
-      `${pc.green("✓")} Created an ${CHIP_WORDMARK} agent in ${pc.bold(result.projectPath)} ${pc.dim(`in ${formatElapsed(result.agentElapsedMs)}`)}`,
+      `${pc.green("✓")} Created a ${CHIP_WORDMARK} agent in ${pc.bold(result.projectPath)} ${pc.dim(`in ${formatElapsed(result.agentElapsedMs)}`)}`,
     );
     for (const mutation of result.workspaceRootMutations) {
       logger.log(pc.yellow(`⚠ ${formatWorkspaceRootMutationWarning(mutation)}`));
     }
   } else {
     logger.log(
-      `${pc.green("✓")} Added an ${CHIP_WORDMARK} agent to ${pc.bold(result.projectPath)} ${pc.dim(`in ${formatElapsed(result.agentElapsedMs)}`)}`,
+      `${pc.green("✓")} Added a ${CHIP_WORDMARK} agent to ${pc.bold(result.projectPath)} ${pc.dim(`in ${formatElapsed(result.agentElapsedMs)}`)}`,
     );
   }
   logger.log(

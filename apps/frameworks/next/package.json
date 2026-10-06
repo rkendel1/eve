@@ -5,8 +5,8 @@
   "scripts": {
     "build": "pnpm build:next",
     "dev": "next dev",
-    "dev:eve": "eve dev",
-    "build:eve": "eve build",
+    "dev:eve": "chip dev",
+    "build:eve": "chip build",
     "build:next": "next build",
     "lint": "eslint",
     "typecheck": "tsc"

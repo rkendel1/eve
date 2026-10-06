@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "eve dev",
-    "build": "eve build",
-    "start": "eve start",
-    "info": "eve info",
+    "dev": "chip dev",
+    "build": "chip build",
+    "start": "chip start",
+    "info": "chip info",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

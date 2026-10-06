@@ -202,7 +202,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run eve dev scenario
+      - name: Run chip dev scenario
         run: |
           $env:Path = "$env:PNPM_HOME;$env:Path"
           pnpm --dir packages/eve exec vitest run --config vitest.dev-server.config.ts

@@ -134,7 +134,7 @@ jobs:
         run: |
           mkdir -p "$EVE_EVAL_JUNIT_DIR"
           cd "${{ matrix.dir }}"
-          pnpm exec eve eval --strict --verbose \
+          pnpm exec chip eval --strict --verbose \
             --junit "$EVE_EVAL_JUNIT_DIR/${{ matrix.name }}-${{ matrix.model_name }}.xml"
 
       - name: Upload eval artifacts

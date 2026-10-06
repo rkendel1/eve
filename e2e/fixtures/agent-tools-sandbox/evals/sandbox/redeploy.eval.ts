@@ -143,7 +143,7 @@ export default defineEval({
 async function deployToAlias(t: EveEvalContext, alias: string, phase: string): Promise<void> {
   // Mirror the workflow's build env. Sandbox templates key on
   // VERCEL_PROJECT_ID, which is already present in the environment.
-  await execFileAsync("pnpm", ["exec", "eve", "build"], {
+  await execFileAsync("pnpm", ["exec", "chip", "build"], {
     ...EXEC_OPTIONS,
     env: {
       ...process.env,

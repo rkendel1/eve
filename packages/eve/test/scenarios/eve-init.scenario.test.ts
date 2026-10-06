@@ -264,7 +264,7 @@ describe("eve init smoke", () => {
         cwd: canonicalProjectDir,
       },
     ]);
-    expect(result.stdout).toContain("Created an eve agent in ");
+    expect(result.stdout).toContain("Created a chip agent in ");
     expect(result.stdout).toContain("Preparing project...");
     expect(result.stdout).toContain("Installed dependencies");
     expect(result.stdout).not.toContain("Progress: resolved");
@@ -350,7 +350,7 @@ describe("eve init smoke", () => {
     const result = await runEveBin(scratch, ["init", "."], fakePnpm.env);
 
     expect(result.exitCode, result.stderr).toBe(0);
-    expect(result.stdout).toContain("Added an eve agent to ");
+    expect(result.stdout).toContain("Added a chip agent to ");
     const agentSource = await readFile(join(scratch, "agent/agent.ts"), "utf8");
     expect(agentSource).toContain(DEFAULT_AGENT_MODEL_ID);
     await expect(pathExists(join(scratch, "agent/instructions.md"))).resolves.toBe(true);
@@ -386,7 +386,7 @@ describe("eve init smoke", () => {
         cwd: canonicalProjectDir,
       },
     ]);
-    expect(result.stdout).toContain("Created an eve agent in ");
+    expect(result.stdout).toContain("Created a chip agent in ");
     expect(result.stdout).toContain("chip dev --no-ui");
   });
 

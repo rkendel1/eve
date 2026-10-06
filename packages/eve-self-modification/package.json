@@ -56,7 +56,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "eve extension build && pnpm run build:scaffold",
+    "build": "chip extension build && pnpm run build:scaffold",
     "build:scaffold": "node -e \"require('node:fs').rmSync('scaffold', { force: true, recursive: true })\" && tsc -p tsconfig.scaffold.json",
     "prepack": "pnpm run build",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.scaffold.json --noEmit"

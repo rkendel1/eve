@@ -165,7 +165,7 @@ jobs:
             VERCEL_ENV=preview \
             VERCEL_TARGET_ENV=preview \
             VERCEL_PROJECT_ID="$VERCEL_PROJECT_ID" \
-            pnpm exec eve build --profile "$EVE_BUILD_PROFILE"
+            pnpm exec chip build --profile "$EVE_BUILD_PROFILE"
           DEPLOYMENT_URL="$(pnpm exec vc deploy --prebuilt --yes --target=preview \
             --env "EVE_E2E_MODEL=$EVE_E2E_MODEL" \
             --env "EVE_SANDBOX_IMAGE_TAG=$EVE_SANDBOX_IMAGE_TAG" \
@@ -191,7 +191,7 @@ jobs:
           }
 
           wait_for_target "$DEPLOYMENT_URL"
-          npx eve eval --strict --verbose --exclude-tag real-model \
+          npx chip eval --strict --verbose --exclude-tag real-model \
             --url "$DEPLOYMENT_URL" \
             --junit "$EVE_EVAL_JUNIT_DIR/${{ matrix.name }}.xml"
 
@@ -200,14 +200,14 @@ jobs:
           # deployment. They run against the alias (immutable deployment URLs
           # never change what they serve) and are skipped in the main suite
           # above because EVE_E2E_REDEPLOY_ALIAS is unset there.
-          if npx eve eval --tag redeploy --list >/dev/null 2>&1; then
+          if npx chip eval --tag redeploy --list >/dev/null 2>&1; then
             ALIAS="eve-e2e-${{ matrix.name }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${{ strategy.job-index }}.vercel.app"
             # vc alias does not infer the team from the project link the way
             # link/deploy do, so pass the scope explicitly.
             pnpm exec vc alias set "$DEPLOYMENT_URL" "$ALIAS" "${token_args[@]}" "${scope_args[@]}"
             wait_for_target "https://$ALIAS"
             EVE_E2E_REDEPLOY_ALIAS="$ALIAS" \
-              npx eve eval --tag redeploy --strict --verbose --exclude-tag real-model \
+              npx chip eval --tag redeploy --strict --verbose --exclude-tag real-model \
               --url "https://$ALIAS" \
               --junit "$EVE_EVAL_JUNIT_DIR/${{ matrix.name }}-redeploy.xml"
           fi

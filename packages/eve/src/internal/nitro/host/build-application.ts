@@ -235,7 +235,7 @@ export async function buildApplication(
   );
   if (extensionBuild !== null) {
     throw new Error(
-      `Package "${extensionBuild.packageName}" is an eve extension. Run \`eve extension build\` instead of \`eve build\`.`,
+      `Package "${extensionBuild.packageName}" is an eve extension. Run \`chip extension build\` instead of \`chip build\`.`,
     );
   }
 

@@ -137,7 +137,7 @@ describe("runExtensionInitCommand", () => {
     expect(deps.tryInitializeGit).toHaveBeenCalledWith(projectPath);
 
     const printed = output.messages.join("\n");
-    expect(printed).toContain("Created an eve extension in ");
+    expect(printed).toContain("Created a chip extension in ");
     expect(printed).toContain(projectPath);
     expect(printed).toContain("Initialized Git repository");
     expect(printed).toContain("extension/extension.ts");
@@ -160,7 +160,7 @@ describe("runExtensionInitCommand", () => {
     expect(deps.runPackageManagerInstall).toHaveBeenCalled();
     expect(deps.tryInitializeGit).toHaveBeenCalledWith(projectPath);
     const printed = output.messages.join("\n");
-    expect(printed).toContain("Created an eve extension in ");
+    expect(printed).toContain("Created a chip extension in ");
     expect(printed).toContain("What we set up:");
     expect(printed).not.toContain("Set up a Chip agent");
   });

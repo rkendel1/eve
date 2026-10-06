@@ -52,9 +52,9 @@ export async function signalEveDevDuringStartup(
     output += chunk;
   });
   const deadline = Date.now() + 30_000;
-  while (!output.includes("eve")) {
+  while (!output.includes("chip")) {
     if (Date.now() >= deadline)
-      throw new Error(`Timed out waiting for eve dev startup.\n${output}`);
+      throw new Error(`Timed out waiting for chip dev startup.\n${output}`);
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
   await new Promise((resolve) => setTimeout(resolve, 100));

@@ -337,7 +337,7 @@ export async function runExtensionInitCommand(
 
   trackStep?.("handoff");
   logger.log(
-    `${pc.green("✓")} Created an ${CHIP_WORDMARK} extension in ${pc.bold(projectPath!)} ${pc.dim(`in ${formatElapsed(agentElapsedMs!)}`)}`,
+    `${pc.green("✓")} Created a ${CHIP_WORDMARK} extension in ${pc.bold(projectPath!)} ${pc.dim(`in ${formatElapsed(agentElapsedMs!)}`)}`,
   );
   for (const mutation of workspaceRootMutations) {
     logger.log(pc.yellow(`⚠ ${formatWorkspaceRootMutationWarning(mutation)}`));

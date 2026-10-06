@@ -148,11 +148,11 @@ function parsePackageTemplate(source: string): PackageTemplate {
   return {
     scripts: {
       build: "next build",
-      "build:eve": "eve build",
+      "build:eve": "chip build",
       dev: "next dev",
-      "dev:eve": "eve dev",
+      "dev:eve": "chip dev",
       start: "next start",
-      "start:eve": "eve start",
+      "start:eve": "chip start",
       typecheck: "tsc --noEmit -p tsconfig.json",
     },
     dependencies: dependencyRecord(item.dependencies, "dependencies"),

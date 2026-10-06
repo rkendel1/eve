@@ -200,7 +200,7 @@ export async function startProductionServer(
 
   if (!existsSync(serverEntry)) {
     throw new Error(
-      `Missing eve build output at ${serverEntry}. Run "eve build" before "eve start".`,
+      `Missing eve build output at ${serverEntry}. Run "chip build" before "chip start".`,
     );
   }
 

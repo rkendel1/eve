@@ -176,8 +176,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The smoke tests drive a real model through AI Gateway.
       - name: Run TUI smoke tests
+        if: env.AI_GATEWAY_API_KEY != ''
         run: pnpm test:tui
+
+      - name: Report skipped TUI smoke tests
+        if: env.AI_GATEWAY_API_KEY == ''
+        run: echo "::notice::AI_GATEWAY_API_KEY is not set, so the TUI smoke tests were skipped."
 
   test-dev-windows:
     runs-on: windows-latest

@@ -213,7 +213,21 @@ on when one exists. Do not create an issue solely to accompany a pull request.
 6. Open the PR with a short description that explains the problem, user need,
    or decision behind the change before describing the solution.
 
-Releases are managed with [Changesets](https://github.com/changesets/changesets) by the maintainers.
+### Releasing
+
+`packages/eve` publishes to npm as `@appport/chip`. To release:
+
+1. Run `pnpm version-packages` on a branch. It consumes the pending changesets,
+   bumps `packages/eve/package.json`, and updates the changelog.
+2. Open a pull request with the result and merge it.
+
+The `Release` workflow publishes on every push to `main` whose package version
+is not on npm yet, after `prepare-chip-package` verifies that the artifact is
+portable. It authenticates with the `NPM_TOKEN` repository secret, which must be
+an npm automation token (or a granular token that bypasses two-factor
+authentication). Run the workflow manually for a dry run, or publish from a
+local checkout with `npm run publish:packages`, where npm prompts for a one-time
+password.
 
 ## Developer Certificate of Origin (DCO)
 

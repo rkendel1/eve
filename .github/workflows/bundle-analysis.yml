@@ -183,7 +183,7 @@ jobs:
             --output-json "$BASELINE_REPORT_JSON"
 
       - name: Build sandbox benchmark on pull request base in Vercel mode
-        if: ${{ steps.mode.outputs.acknowledge_only != 'true' && github.event_name == 'pull_request' }}
+        if: ${{ steps.mode.outputs.acknowledge_only != 'true' && github.event_name == 'pull_request' && env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != '' }}
         id: baseline_sandbox_build
         continue-on-error: true
         working-directory: ${{ steps.baseline.outputs.root }}
@@ -234,8 +234,11 @@ jobs:
           VERCEL=1 pnpm --filter weather-agent
           exec chip build --skip-sandbox-prewarm
 
+      # The sandbox benchmark builds against a Vercel project; without
+      # credentials the timing report is skipped and the size report still runs.
       - name: Build sandbox benchmark in Vercel mode
-        if: ${{ steps.mode.outputs.acknowledge_only != 'true' }}
+        id: sandbox_build
+        if: ${{ steps.mode.outputs.acknowledge_only != 'true' && env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != '' }}
         env:
           SANDBOX_BUILD_PROFILE: ${{ runner.temp }}/sandbox-build-profile.json
         run: |
@@ -292,7 +295,7 @@ jobs:
             --output-markdown "$BUNDLE_REPORT_MARKDOWN"
 
       - name: Generate build timing report
-        if: ${{ steps.mode.outputs.acknowledge_only != 'true' }}
+        if: ${{ steps.mode.outputs.acknowledge_only != 'true' && steps.sandbox_build.outcome == 'success' }}
         env:
           BASELINE_BUILD_PROFILE: ${{ runner.temp }}/sandbox-build-profile-base.json
           BASELINE_BUILD_PROFILE_LABEL: ${{ steps.baseline.outputs.label }}
@@ -327,7 +330,11 @@ jobs:
         run: |
           cat "$BUNDLE_REPORT_MARKDOWN" > "$ANALYSIS_REPORT_MARKDOWN"
           printf '\n\n' >> "$ANALYSIS_REPORT_MARKDOWN"
-          cat "$BUILD_PROFILE_REPORT_MARKDOWN" >> "$ANALYSIS_REPORT_MARKDOWN"
+          if [ -f "$BUILD_PROFILE_REPORT_MARKDOWN" ]; then
+            cat "$BUILD_PROFILE_REPORT_MARKDOWN" >> "$ANALYSIS_REPORT_MARKDOWN"
+          else
+            echo "Build timing skipped: VERCEL_TOKEN and VERCEL_PROJECT_ID are not both set." >> "$ANALYSIS_REPORT_MARKDOWN"
+          fi
 
       - name: Publish job summary
         if: ${{ steps.mode.outputs.acknowledge_only != 'true' }}

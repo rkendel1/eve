@@ -15,10 +15,9 @@ import {
 } from "../../src/internal/testing/scenario-app.js";
 import { startEveDev } from "./dev-server-harness.js";
 
-// The FX model API (`createFxModel`) is not published to npm yet, so this
-// scenario installs an FX SDK tarball that includes the native addon. Point
-// EVE_SCENARIO_LIBFX_TARBALL at one built from the FX repository.
-const LIBFX_TARBALL = process.env.EVE_SCENARIO_LIBFX_TARBALL;
+// @appport/fx is not on npm yet, so this scenario installs a packed FX SDK
+// release (with native addons). Point EVE_SCENARIO_FX_TARBALL at one.
+const FX_TARBALL = process.env.EVE_SCENARIO_FX_TARBALL;
 
 const scenarioApp = useScenarioApp();
 const SCENARIO_TIMEOUT_MS = 360_000;
@@ -41,17 +40,17 @@ interface ProviderRequest {
 
 function createDescriptor(): ScenarioAppDescriptor {
   return {
-    dependencies: { libfx: `file:${LIBFX_TARBALL}`, zod: "^4.3.6" },
+    dependencies: { "@appport/fx": `file:${FX_TARBALL}`, zod: "^4.3.6" },
     files: {
       "agent/agent.ts": `import { defineAgent } from "eve";
 import { fx } from "eve/models/fx";
-import { createFxModel } from "libfx";
+import { createFxModel } from "@appport/fx";
 
 export default defineAgent({
   model: fx(await createFxModel({ baseUrl: process.env.FX_MOCK_BASE_URL, model: "fx-fixture" })),
   modelContextWindowTokens: 32_000,
   // FX loads its native addon relative to its own package.
-  build: { externalDependencies: ["libfx"] },
+  build: { externalDependencies: ["@appport/fx"] },
 });
 `,
       "agent/channels/eve.ts": `import { eveChannel } from "eve/channels/eve";
@@ -253,7 +252,7 @@ function appendedText(events: readonly MessageStreamEvent[]): string[] {
   );
 }
 
-describe.skipIf(LIBFX_TARBALL === undefined)("FX-backed model through /eve/v1/session", () => {
+describe.skipIf(FX_TARBALL === undefined)("FX-backed model through /eve/v1/session", () => {
   it(
     "streams, calls tools, fails, and cancels through FX against a local provider",
     async () => {

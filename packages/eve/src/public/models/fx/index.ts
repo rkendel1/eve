@@ -105,12 +105,12 @@ const RETRYABLE_FAILURE_KINDS = new Set([
  * ```ts
  * import { defineAgent } from "eve";
  * import { fx } from "eve/models/fx";
- * import { createFxModel } from "libfx";
+ * import { createFxModel } from "@appport/fx";
  *
  * export default defineAgent({
  *   model: fx(await createFxModel({ baseUrl: "http://localhost:11434/v1", model: "qwen3-coder" })),
  *   modelContextWindowTokens: 32_000,
- *   build: { externalDependencies: ["libfx"] },
+ *   build: { externalDependencies: ["@appport/fx"] },
  * });
  * ```
  *

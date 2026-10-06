@@ -708,7 +708,7 @@ describe("createDevelopmentServer", () => {
     await expect(startDevelopmentServer("/tmp/eve-test")).rejects.toThrow(
       [
         "A dev server is already running for this eve agent.",
-        "To connect to the existing instance, run: pnpm exec eve dev http://localhost:2000/",
+        "To connect to the existing instance, run: pnpm exec chip dev http://localhost:2000/",
       ].join("\n"),
     );
     expect(mocks.createDevelopmentApplicationNitro).not.toHaveBeenCalled();

@@ -173,7 +173,7 @@ describe("runInitCommand", () => {
     expect(deps.selectInitHandoff).toHaveBeenCalledWith({ agentName: "operations" });
     expect(deps.spawnPackageManager).toHaveBeenCalledWith("pnpm", projectRoot, [
       "exec",
-      "eve",
+      "chip",
       "dev",
       "--onboard",
     ]);
@@ -267,7 +267,7 @@ describe("runInitCommand", () => {
     expect(deps.tryInitializeGit).toHaveBeenCalledWith(projectPath);
     expect(deps.spawnPackageManager).toHaveBeenCalledWith("pnpm", projectPath, [
       "exec",
-      "eve",
+      "chip",
       "dev",
       "--onboard",
     ]);
@@ -362,7 +362,7 @@ describe("runInitCommand", () => {
     expect(deps.spawnCodingAgentRepl).not.toHaveBeenCalled();
     expect(deps.spawnPackageManager).toHaveBeenCalledWith("pnpm", projectPath, [
       "exec",
-      "eve",
+      "chip",
       "dev",
       "--onboard",
     ]);
@@ -496,7 +496,7 @@ describe("runInitCommand", () => {
       expect(deps.tryInitializeGit).toHaveBeenCalledWith(projectPath);
       expect(deps.spawnPackageManager).toHaveBeenCalledWith("pnpm", projectPath, [
         "exec",
-        "eve",
+        "chip",
         "dev",
         "--onboard",
       ]);
@@ -528,9 +528,9 @@ describe("runInitCommand", () => {
   });
 
   it.each([
-    ["npm", ["exec", "--", "eve", "dev", "--onboard"]],
-    ["yarn", ["eve", "dev", "--onboard"]],
-    ["bun", ["x", "eve", "dev", "--onboard"]],
+    ["npm", ["exec", "--", "chip", "dev", "--onboard"]],
+    ["yarn", ["chip", "dev", "--onboard"]],
+    ["bun", ["x", "chip", "dev", "--onboard"]],
   ] as const)(
     "scaffolds a fresh project owned by the invoking manager %s without package-manager pins",
     async (kind, devArguments) => {
@@ -589,17 +589,17 @@ describe("runInitCommand", () => {
     );
     expect(deps.spawnPackageManager).toHaveBeenCalledWith("bun", projectPath, [
       "x",
-      "eve",
+      "chip",
       "dev",
       "--onboard",
     ]);
   });
 
   it.each([
-    ["npm", "package-lock.json", "bun", ["exec", "--", "eve", "dev", "--onboard"]],
-    ["yarn", "yarn.lock", "npm", ["eve", "dev", "--onboard"]],
-    ["bun", "bun.lock", "npm", ["x", "eve", "dev", "--onboard"]],
-    ["pnpm", "pnpm-lock.yaml", "npm", ["exec", "eve", "dev", "--onboard"]],
+    ["npm", "package-lock.json", "bun", ["exec", "--", "chip", "dev", "--onboard"]],
+    ["yarn", "yarn.lock", "npm", ["chip", "dev", "--onboard"]],
+    ["bun", "bun.lock", "npm", ["x", "chip", "dev", "--onboard"]],
+    ["pnpm", "pnpm-lock.yaml", "npm", ["exec", "chip", "dev", "--onboard"]],
   ] as const)(
     "scaffolds a fresh named project with the ancestor %s lockfile before the launcher",
     async (kind, lockfile, invokingManager, devArguments) => {
@@ -771,8 +771,8 @@ describe("runInitCommand", () => {
   });
 
   it.each([
-    ["yarn", "yarn.lock", ["eve", "dev", "--onboard"]],
-    ["bun", "bun.lock", ["x", "eve", "dev", "--onboard"]],
+    ["yarn", "yarn.lock", ["chip", "dev", "--onboard"]],
+    ["bun", "bun.lock", ["x", "chip", "dev", "--onboard"]],
   ] as const)(
     "scaffolds a fresh %s workspace member without nested root-only package fields",
     async (kind, lockfile, devArguments) => {
@@ -848,7 +848,7 @@ describe("runInitCommand", () => {
     expect(deps.spawnPackageManager).toHaveBeenCalledWith("npm", projectPath, [
       "exec",
       "--",
-      "eve",
+      "chip",
       "dev",
       "--onboard",
     ]);
@@ -872,7 +872,7 @@ describe("runInitCommand", () => {
     );
     expect(deps.spawnPackageManager).toHaveBeenCalledWith("pnpm", projectPath, [
       "exec",
-      "eve",
+      "chip",
       "dev",
       "--onboard",
     ]);
@@ -899,7 +899,7 @@ describe("runInitCommand", () => {
     );
     expect(deps.spawnPackageManager).toHaveBeenCalledWith("pnpm", projectPath, [
       "exec",
-      "eve",
+      "chip",
       "dev",
       "--onboard",
     ]);
@@ -967,7 +967,7 @@ describe("runInitCommand", () => {
     expect(deps.tryInitializeGit).not.toHaveBeenCalled();
     expect(deps.spawnPackageManager).toHaveBeenCalledWith("pnpm", projectRoot, [
       "exec",
-      "eve",
+      "chip",
       "dev",
     ]);
     const printed = output.messages.join("\n");
@@ -1100,9 +1100,9 @@ describe("runInitCommand", () => {
   });
 
   it.each([
-    ["npm", "package-lock.json", ["exec", "--", "eve", "dev"]],
-    ["yarn", "yarn.lock", ["eve", "dev"]],
-    ["bun", "bun.lock", ["x", "eve", "dev"]],
+    ["npm", "package-lock.json", ["exec", "--", "chip", "dev"]],
+    ["yarn", "yarn.lock", ["chip", "dev"]],
+    ["bun", "bun.lock", ["x", "chip", "dev"]],
   ] as const)(
     "drives an existing %s project with its own manager and no pnpm policy",
     async (kind, lockfile, devArguments) => {
@@ -1161,7 +1161,7 @@ describe("runInitCommand", () => {
       expect.anything(),
     );
     expect(deps.tryInitializeGit).not.toHaveBeenCalled();
-    expect(deps.spawnPackageManager).toHaveBeenCalledWith("bun", projectRoot, ["x", "eve", "dev"]);
+    expect(deps.spawnPackageManager).toHaveBeenCalledWith("bun", projectRoot, ["x", "chip", "dev"]);
   });
 
   it("adds an agent to an existing pnpm workspace member without nested root-only policy", async () => {
@@ -1333,7 +1333,7 @@ describe("runInitCommand", () => {
     expect(deps.spawnPackageManager).toHaveBeenCalledWith(
       "pnpm",
       join(parentDirectory, "my-agent"),
-      ["exec", "eve", "dev", "--onboard"],
+      ["exec", "chip", "dev", "--onboard"],
     );
   });
 

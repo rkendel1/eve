@@ -5,7 +5,7 @@ export const bunPackageManager = {
   kind: "bun",
   scaffoldFiles: {},
   applyProjectConfiguration: applyNoProjectConfiguration,
-  devArguments: () => ["x", "eve", "dev"],
+  devArguments: () => ["x", "chip", "dev"],
   installArguments: () => ["install"],
   prepareArguments: (_projectRoot, args) => args,
   resolveInvocation: (args) => resolveStandardInvocation("bun", args),

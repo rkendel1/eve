@@ -129,6 +129,26 @@ export async function collectForbiddenSelfImports(root = compiledRoot) {
   return findings;
 }
 
+/**
+ * Runtime files that embed the build machine's checkout path.
+ *
+ * Build-time stamps can capture local state: `EVE_MAIN_DEPENDENCY_URL` left
+ * pointing at a staged tarball made `chip init` in @appport/chip@0.54.3 write
+ * `file:/Users/<author>/...` into every generated package.json. Such a path
+ * cannot resolve on any other machine.
+ */
+export async function collectBuildMachinePaths(root = compiledRoot, checkoutPath = repositoryRoot) {
+  const needle = resolve(checkoutPath);
+  const files = await walk(root);
+  const findings = [];
+  for (const file of files) {
+    const relPath = relative(root, file).split(sep).join("/");
+    if (relPath.startsWith("compiled/")) continue;
+    if ((await readFile(file, "utf8")).includes(needle)) findings.push({ file: relPath });
+  }
+  return findings;
+}
+
 function parseRoot(argv) {
   const index = argv.indexOf("--root");
   return index === -1 ? undefined : resolve(repositoryRoot, argv[index + 1] ?? "");
@@ -171,7 +191,23 @@ if (import.meta.main) {
     process.exit(1);
   }
 
+  const machinePathFindings = await collectBuildMachinePaths(root);
+  if (machinePathFindings.length > 0) {
+    process.stderr.write(
+      [
+        `Packed runtime code embeds this checkout's absolute path (${resolve(repositoryRoot)}):`,
+        ...machinePathFindings.map(({ file }) => `  ${file}`),
+        "",
+        "That path only exists on the build machine. The usual cause is a build-time",
+        "stamp reading local state, e.g. EVE_MAIN_DEPENDENCY_URL set to a local",
+        "tarball. Unset it, rebuild with `pnpm build`, and stage again.",
+        "",
+      ].join("\n"),
+    );
+    process.exit(1);
+  }
+
   process.stdout.write(
-    "[chip:check-portable-artifact] ok — no workspace-relative runtime imports and no stale framework self-imports.\n",
+    "[chip:check-portable-artifact] ok — no workspace-relative runtime imports, no stale framework self-imports, and no build-machine paths.\n",
   );
 }

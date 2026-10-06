@@ -136,6 +136,7 @@ import template from "../../prompts/template.txt?raw";
 | `eve/instrumentation`                                                       | `defineInstrumentation`, `isChannel`                                                                    |
 | `eve/local-dev`                                                             | `getLocalDevCapability`, `LocalDevCapability`                                                           |
 | `eve/models/openai`                                                         | `chatgpt`, deprecated `experimental_chatgpt`                                                            |
+| `eve/models/fx`                                                             | `fx`, FX model API types                                                                                |
 | `eve/evals`                                                                 | `defineEval`, `defineEvalConfig`, `mockModel`, eval types                                               |
 | `eve/evals/expect`                                                          | `includes`, `equals`, `matches`, `similarity`                                                           |
 | `eve/evals/reporters`                                                       | `Braintrust`, `JUnit`, `EvalReporter`                                                                   |
@@ -208,6 +209,29 @@ Troubleshooting:
 - **`chatgpt-sub unavailable`**: follow the reported OS credential-store recovery steps, or check your network connection if token refresh failed. Retry from `/model`. If eve reports an invalid stored session, sign in again to replace it.
 - **Model rejected by the backend**: model availability depends on the signed-in ChatGPT account. Pick another supported OpenAI model.
 - **Device sign-in unavailable**: enable device code authorization in ChatGPT security settings, or sign in from a local terminal with port 1455 available.
+
+## FX models
+
+`fx()` from `eve/models/fx` serves an agent's model through the FX model API instead of AI Gateway. FX owns the endpoint, credentials, and transport; create the model with FX's `createFxModel()` and pass it to `fx()`:
+
+```ts title="agent/agent.ts"
+import { defineAgent } from "eve";
+import { fx } from "eve/models/fx";
+import { createFxModel } from "@appport/fx";
+
+export default defineAgent({
+  model: fx(await createFxModel({ baseUrl: "http://localhost:11434/v1", model: "qwen3-coder" })),
+  modelContextWindowTokens: 32_000,
+  build: { externalDependencies: ["@appport/fx"] },
+});
+```
+
+- **Context window**: FX models are not in the AI Gateway catalog, so set `modelContextWindowTokens`.
+- **External dependency**: FX loads its native addon relative to its own package. List it in `build.externalDependencies` so eve does not bundle it.
+- **Streaming**: text and reasoning stream as FX delivers them. Tool calls arrive whole when the provider finishes, because FX's OpenAI-compatible stream does not emit partial tool-call arguments.
+- **Prompts are text-only**: file parts in user messages or tool results fail the call. Reasoning from earlier turns is not replayed to the provider.
+- **Unsupported settings**: `temperature`, `topP`, `topK`, penalties, `stopSequences`, `seed`, JSON response format, and reasoning effort are not sent; the AI SDK reports each as an unsupported-setting warning.
+- **Failures**: an HTTP error from the provider becomes an AI SDK `APICallError` carrying FX's failure `kind`, response `detail`, and `Retry-After` delay. Rate limits and 5xx kinds are retryable. Cancelling the turn aborts the provider request.
 
 ## What to read next
 

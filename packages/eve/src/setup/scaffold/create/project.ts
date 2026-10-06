@@ -310,10 +310,10 @@ For a content-only change to the root agent's identity, purpose, tone, or respon
 ## Read the docs before writing code
 
 \`\`\`sh
-ls node_modules/eve/docs
+ls node_modules/__EVE_INIT_FRAMEWORK_PACKAGE__/docs
 \`\`\`
 
-Start with \`docs/README.md\`: it maps each task to the page that covers it. Read that page before authoring tools, connections, channels, skills, subagents, schedules, or deployment. In a workspace or local package install, resolve the installed \`eve\` package location first. If the package docs are missing, use https://eve.dev/docs.
+Start with \`docs/README.md\`: it maps each task to the page that covers it. Read that page before authoring tools, connections, channels, skills, subagents, schedules, or deployment. In a workspace or local package install, resolve the installed \`__EVE_INIT_FRAMEWORK_PACKAGE__\` package location first. If the package docs are missing, use https://eve.dev/docs.
 
 Use a bounded authoring loop:
 

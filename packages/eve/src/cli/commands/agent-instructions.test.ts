@@ -35,7 +35,7 @@ describe("initAgentInstructions", () => {
     expect(instructions).toContain("npx eve@latest extension init <name>");
     expect(instructions).toContain("full docs are bundled");
     expect(instructions).toContain("node_modules/eve/docs/");
-    expect(instructions).toContain("resolve\nthe installed `eve` package location");
+    expect(instructions).toContain("installs, resolve the installed `eve` package location");
     expect(instructions).toContain("npx chip dev --no-ui");
     expect(instructions).not.toContain("npm run dev");
     expect(instructions).not.toContain("starts the dev server");
@@ -85,7 +85,7 @@ describe("initAgentDevHandoff", () => {
     expect(handoff).toContain("The project at `/tmp/triage-bot` is already scaffolded");
     expect(handoff).toContain("full docs are bundled");
     expect(handoff).toContain("node_modules/eve/docs/");
-    expect(handoff).toContain("resolve\nthe installed `eve` package location");
+    expect(handoff).toContain("installs, resolve the installed `eve` package location");
     expect(handoff).toContain("agent/instructions.md");
     expect(handoff).toContain("`chip registry search <query>`");
     expect(handoff).toContain("`chip registry list`");

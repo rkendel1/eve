@@ -288,8 +288,23 @@ export async function stagePublishedPackage(options = {}) {
   return { stagingPackageDir, publishedManifest, retargetedFiles };
 }
 
-/** Packs the staged package. Fails closed if npm cannot produce a tarball. */
+/**
+ * Packs the staged package. Fails closed if the staged runtime is not portable
+ * or npm cannot produce a tarball.
+ */
 function packStagedPackage(stagingPackageDir, stagingRoot) {
+  const check = spawnSync(
+    process.execPath,
+    [
+      join(repositoryRoot, "scripts", "check-portable-artifact.mjs"),
+      "--root",
+      join(stagingPackageDir, "dist", "src"),
+    ],
+    { cwd: repositoryRoot, stdio: "inherit" },
+  );
+  if (check.status !== 0) {
+    throw new Error("The staged Chip package failed the portability check. Refusing to pack it.");
+  }
   const result = spawnSync("npm", ["pack", "--ignore-scripts", "--pack-destination", stagingRoot], {
     cwd: stagingPackageDir,
     encoding: "utf8",

@@ -2,8 +2,8 @@
 
 Work from the project directory. Once Chip is installed, the full docs are bundled
 with the installed package and match its version exactly. In most installs, they
-are at `node_modules/eve/docs/`. In workspaces or local package installs, resolve
-the installed `eve` package location first and read its `docs/` directory. If
+are at `node_modules/{{frameworkPackage}}/docs/`. In workspaces or local package
+installs, resolve the installed `{{frameworkPackage}}` package location first and read its `docs/` directory. If
 package docs are unavailable, use https://eve.dev/docs as a fallback. Read
 `README.md` in the package docs first, then the guide for what you're adding,
 such as `connections`, `channels/slack`, or `guides/auth-and-route-protection`

@@ -163,10 +163,10 @@ describe("runPackageManagerInstall", () => {
 
 describe("eveDevArguments", () => {
   test.each([
-    ["npm", ["exec", "--", "eve", "dev"]],
-    ["pnpm", ["exec", "eve", "dev"]],
-    ["yarn", ["eve", "dev"]],
-    ["bun", ["x", "eve", "dev"]],
+    ["npm", ["exec", "--", "chip", "dev"]],
+    ["pnpm", ["exec", "chip", "dev"]],
+    ["yarn", ["chip", "dev"]],
+    ["bun", ["x", "chip", "dev"]],
   ] as const)("maps %s to its local-binary invocation", (kind, expectedArgs) => {
     expect(eveDevArguments(kind)).toEqual(expectedArgs);
   });

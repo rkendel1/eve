@@ -5,7 +5,7 @@ export const npmPackageManager = {
   kind: "npm",
   scaffoldFiles: {},
   applyProjectConfiguration: applyNoProjectConfiguration,
-  devArguments: () => ["exec", "--", "eve", "dev"],
+  devArguments: () => ["exec", "--", "chip", "dev"],
   installArguments: (options) => [
     "install",
     ...(options.progressDetails === true ? ["--loglevel=silly"] : []),

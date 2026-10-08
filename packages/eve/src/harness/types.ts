@@ -1,3 +1,4 @@
+import type { ExecutionEvidence } from "#protocol/execution-evidence.js";
 import type { LanguageModel, ModelMessage, UserContent } from "ai";
 
 import type { SessionAuthContext, SessionCapabilities } from "#channel/types.js";
@@ -353,6 +354,13 @@ export interface ToolLoopHarnessConfig {
    * authoritative server-side metadata.
    */
   readonly runtimeIdentity?: RuntimeIdentity;
+  /**
+   * Execution evidence the host obtained from the runtime that executes the turn
+   * (for example Compute identifiers). Carried through `turn.completed`,
+   * `turn.failed` and `turn.cancelled` as `details.compute`. Chip never creates
+   * or derives it; absent means no evidence is emitted.
+   */
+  readonly executionEvidence?: ExecutionEvidence;
   /**
    * Unified tool definitions for this harness step.
    *

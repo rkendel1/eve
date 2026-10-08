@@ -110,6 +110,7 @@ import {
   enforceSessionUsageLimit,
 } from "#harness/session-limit-enforcement.js";
 import { setEveAttributes } from "#runtime/attributes/emit.js";
+import { withExecutionEvidence } from "#protocol/execution-evidence.js";
 import {
   advanceStep,
   emitFailedStep,
@@ -511,12 +512,14 @@ export function createToolLoopHarness(config: ToolLoopHarnessConfig): StepFn {
     const callback = store?.get(SessionCallbackKey);
     const hasDelegatedCaller = parent !== undefined || callback !== undefined;
     let activeAttemptScope: InstrumentationAttempt | undefined;
-    const emit =
+    const emit = withExecutionEvidence(
       stepInstrumentation?.createHandleEvent({
         getAttemptScope: () => activeAttemptScope,
         handleEvent: baseEmit,
         turnId: activeTurnId(emissionState),
-      }) ?? baseEmit;
+      }) ?? baseEmit,
+      config.executionEvidence,
+    );
     const failModelSelection = async (
       error: unknown,
       failureState: ReturnType<typeof getHarnessEmissionState>,

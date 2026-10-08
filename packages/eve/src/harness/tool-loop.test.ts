@@ -1556,6 +1556,51 @@ describe("createToolLoopHarness", () => {
     ).rejects.toThrow(/Dynamic model selection is required/);
   });
 
+  describe("host-supplied execution evidence", () => {
+    const evidence = {
+      compute: { environmentId: "env_123", executionId: "exec_789", jobId: "job_456", receiptId: "receipt_abc" },
+    };
+    const failingSession = () =>
+      createTestSession({ agent: { dynamicModel: true, system: "You are a test assistant.", tools: [] } });
+
+    it("carries it on turn.failed without changing the failure", async () => {
+      const { emit, events } = createEventCollector();
+      const runStep = createToolLoopHarness(createTestConfig("conversation", emit, { executionEvidence: evidence }));
+
+      await contextStorage.run(new ContextContainer(), () => runStep(failingSession(), { message: "Hi" }));
+
+      const failed = events.find((event) => event.type === "turn.failed");
+      expect(failed?.data.message).toContain("Dynamic model selection is required");
+      // Chip's own failure details (the correlated errorId) are kept; the evidence is added beside them.
+      expect(failed?.data.details).toEqual({ errorId: expect.any(String), ...evidence });
+      expect(events.find((event) => event.type === "turn.started")?.data).not.toHaveProperty("details");
+    });
+
+    it("carries it on turn.completed", async () => {
+      const { emit, events } = createEventCollector();
+      const runStep = createToolLoopHarness(createTestConfig("conversation", emit, { executionEvidence: evidence }));
+
+      await runStep(createLimitReachedSession(), { message: "Hi again" });
+
+      expect(events.find((event) => event.type === "turn.completed")?.data).toEqual({
+        details: evidence,
+        sequence: 0,
+        turnId: "turn_0",
+      });
+    });
+
+    it("emits no details.compute when the host supplies none", async () => {
+      const { emit, events } = createEventCollector();
+      const runStep = createToolLoopHarness(createTestConfig("conversation", emit));
+
+      await contextStorage.run(new ContextContainer(), () => runStep(failingSession(), { message: "Hi" }));
+
+      const details = events.find((event) => event.type === "turn.failed")?.data.details as Record<string, unknown>;
+      expect(details).toEqual({ errorId: expect.any(String) });
+      expect(details).not.toHaveProperty("compute");
+    });
+  });
+
   it("emits a terminal failure when no dynamic model selection is active", async () => {
     const { emit, events } = createEventCollector();
     const runStep = createToolLoopHarness(createTestConfig("conversation", emit));

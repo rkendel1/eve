@@ -566,6 +566,8 @@ export interface StepFailedStreamEvent {
  */
 export interface TurnCompletedStreamEvent {
   data: {
+    /** Optional host-supplied evidence, e.g. `details.compute`. Absent unless supplied. */
+    details?: JsonObject;
     sequence: number;
     turnId: string;
   };
@@ -594,6 +596,8 @@ export interface TurnFailedStreamEvent {
  */
 export interface TurnCancelledStreamEvent {
   data: {
+    /** Optional host-supplied evidence, e.g. `details.compute`. Absent unless supplied. */
+    details?: JsonObject;
     sequence: number;
     turnId: string;
   };
@@ -1560,11 +1564,13 @@ export function createStepFailedEvent(input: {
  * Creates the `turn.completed` event for one terminal successful turn.
  */
 export function createTurnCompletedEvent(input: {
+  readonly details?: JsonObject;
   readonly sequence: number;
   readonly turnId: string;
 }): TurnCompletedStreamEvent {
   return {
     data: {
+      ...(input.details === undefined ? {} : { details: input.details }),
       sequence: input.sequence,
       turnId: input.turnId,
     },
@@ -1596,11 +1602,13 @@ export function createTurnFailedEvent(input: {
 
 /** Creates the `turn.cancelled` event for one cancelled turn. */
 export function createTurnCancelledEvent(input: {
+  readonly details?: JsonObject;
   readonly sequence: number;
   readonly turnId: string;
 }): TurnCancelledStreamEvent {
   return {
     data: {
+      ...(input.details === undefined ? {} : { details: input.details }),
       sequence: input.sequence,
       turnId: input.turnId,
     },

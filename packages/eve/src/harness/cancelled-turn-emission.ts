@@ -1,5 +1,6 @@
 import { createSessionWaitingEvent, createTurnCancelledEvent } from "#protocol/message.js";
 import type { HarnessEmitFn } from "#harness/types.js";
+import { withExecutionEvidence, type ExecutionEvidence } from "#protocol/execution-evidence.js";
 
 import { activeTurnId } from "#harness/active-turn-id.js";
 import type { HarnessEmissionState } from "#harness/emission.js";
@@ -13,9 +14,11 @@ import type { HarnessEmissionState } from "#harness/emission.js";
  * {@link activeTurnId} and `sessionStarted` is stamped `true`.
  */
 export async function emitCancelledTurn(
-  emitFn: HarnessEmitFn,
+  rawEmitFn: HarnessEmitFn,
   state: HarnessEmissionState,
+  executionEvidence?: ExecutionEvidence,
 ): Promise<HarnessEmissionState> {
+  const emitFn = withExecutionEvidence(rawEmitFn, executionEvidence);
   await emitFn(
     createTurnCancelledEvent({
       sequence: state.sequence,

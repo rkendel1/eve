@@ -70,3 +70,38 @@ describe("createRuntimeToolResultFromToolError", () => {
     });
   });
 });
+
+describe("createRuntimeToolResultFromValue with an MCP result", () => {
+  const failure = {
+    _meta: { "app/error": { code: "NOT_FOUND" } },
+    content: [{ text: "NOT_FOUND: todo todo_999 not found", type: "text" }],
+    isError: true,
+  };
+
+  it("marks an MCP error result as an error and keeps the result verbatim for the model", () => {
+    expect(
+      createRuntimeToolResultFromValue({
+        callId: "c",
+        output: failure,
+        toolName: "todos__complete",
+      }),
+    ).toEqual({
+      callId: "c",
+      isError: true,
+      kind: "tool-result",
+      output: failure,
+      toolName: "todos__complete",
+    });
+  });
+
+  it("leaves a successful MCP result, and a result with isError:false, unmarked", () => {
+    const ok = { content: [{ text: "ok", type: "text" }], isError: false };
+    const result = createRuntimeToolResultFromValue({
+      callId: "c",
+      output: ok,
+      toolName: "todos__list",
+    });
+    expect(result).not.toHaveProperty("isError");
+    expect(result.output).toEqual(ok);
+  });
+});

@@ -1,5 +1,6 @@
 import type { FileUIPart, ProviderMetadata, TextUIPart, UserContent } from "ai";
 
+import { isMcpErrorResult, mcpErrorText } from "#shared/mcp-tool-result.js";
 import {
   deserializeUrlFilePart,
   hasInternalRefScheme,
@@ -1778,7 +1779,9 @@ function buildActionResultError(result: RuntimeActionResult): ActionResultError 
 
   return {
     code: "ACTION_RESULT_FAILED",
-    message: formatActionResultOutput(result.output),
+    message:
+      (isMcpErrorResult(result.output) ? mcpErrorText(result.output) : undefined) ??
+      formatActionResultOutput(result.output),
   };
 }
 

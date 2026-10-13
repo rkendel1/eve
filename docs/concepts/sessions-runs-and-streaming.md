@@ -45,37 +45,37 @@ curl http://127.0.0.1:2000/eve/v1/session/<sessionId>/stream
 
 The stream is newline-delimited JSON (NDJSON), one event per line:
 
-| Event                     | Meaning                                                                                                          |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `session.started`         | A durable session was created; carries `trace` when the runtime is traced.                                       |
-| `turn.started`            | A new turn began; carries the active `trace` when the runtime is traced.                                         |
-| `message.received`        | An inbound user message was accepted; carries flattened text plus structured text/file parts.                    |
-| `step.started`            | A model step began.                                                                                              |
-| `action.input.appended`   | A raw tool-input text delta and its tool-call identity.                                                          |
-| `actions.requested`       | The model requested one or more actions, including tool calls; calls stream before execution.                    |
-| `action.partial`          | A locally executed tool generator yielded a preliminary output snapshot.                                         |
-| `action.result`           | A tool call returned.                                                                                            |
-| `input.requested`         | The run paused for human input ([HITL](/docs/human-in-the-loop) approval or `ask_question`); carries `requests`. |
-| `input.resolved`          | The server accepted terminal human-input outcomes; carries `resolutions` with responses when provided.           |
-| `subagent.called`         | A subagent was delegated; carries `childSessionId` to attach to.                                                 |
-| `subagent.completed`      | A background subagent was admitted and returned its task receipt.                                                |
-| `reasoning.appended`      | A reasoning text delta.                                                                                          |
-| `reasoning.completed`     | The finalized reasoning block.                                                                                   |
-| `message.appended`        | An assistant text delta.                                                                                         |
-| `message.completed`       | A finalized assistant text block.                                                                                |
-| `result.completed`        | The finalized structured result for a turn that requested an output schema; carries `result`.                    |
-| `compaction.requested`    | Context-window compaction began; carries `modelId`, `sessionId`, `turnId`, `usageInputTokens`.                   |
-| `compaction.completed`    | A compaction checkpoint was written to durable history.                                                          |
-| `authorization.required`  | A connection needs OAuth; carries `name`, `description`, and an `authorization` challenge.                       |
-| `authorization.completed` | A connection's authorization resolved; carries `outcome`.                                                        |
-| `step.completed`          | A model step finished; carries `finishReason` and usage.                                                         |
-| `step.failed`             | A model step failed; carries `{ code, message, details? }`.                                                      |
-| `turn.completed`          | The turn finished.                                                                                               |
-| `turn.failed`             | The turn failed; carries `{ code, message, details? }`.                                                          |
-| `turn.cancelled`          | The turn was cancelled before finishing; always followed by `session.waiting`.                                   |
-| `session.waiting`         | The session parked and is ready for the next message.                                                            |
-| `session.failed`          | The session failed.                                                                                              |
-| `session.completed`       | The session reached a terminal end.                                                                              |
+| Event                     | Meaning                                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `session.started`         | A durable session was created; carries `trace` when the runtime is traced.                                                         |
+| `turn.started`            | A new turn began; carries the active `trace` when the runtime is traced.                                                           |
+| `message.received`        | An inbound user message was accepted; carries flattened text plus structured text/file parts.                                      |
+| `step.started`            | A model step began.                                                                                                                |
+| `action.input.appended`   | A raw tool-input text delta and its tool-call identity.                                                                            |
+| `actions.requested`       | The model requested one or more actions, including tool calls; calls stream before execution.                                      |
+| `action.partial`          | A locally executed tool generator yielded a preliminary output snapshot.                                                           |
+| `action.result`           | A tool call returned or was rejected; `data.status` is `completed`, `failed`, or `rejected`, with `data.error` when not completed. |
+| `input.requested`         | The run paused for human input ([HITL](/docs/human-in-the-loop) approval or `ask_question`); carries `requests`.                   |
+| `input.resolved`          | The server accepted terminal human-input outcomes; carries `resolutions` with responses when provided.                             |
+| `subagent.called`         | A subagent was delegated; carries `childSessionId` to attach to.                                                                   |
+| `subagent.completed`      | A background subagent was admitted and returned its task receipt.                                                                  |
+| `reasoning.appended`      | A reasoning text delta.                                                                                                            |
+| `reasoning.completed`     | The finalized reasoning block.                                                                                                     |
+| `message.appended`        | An assistant text delta.                                                                                                           |
+| `message.completed`       | A finalized assistant text block.                                                                                                  |
+| `result.completed`        | The finalized structured result for a turn that requested an output schema; carries `result`.                                      |
+| `compaction.requested`    | Context-window compaction began; carries `modelId`, `sessionId`, `turnId`, `usageInputTokens`.                                     |
+| `compaction.completed`    | A compaction checkpoint was written to durable history.                                                                            |
+| `authorization.required`  | A connection needs OAuth; carries `name`, `description`, and an `authorization` challenge.                                         |
+| `authorization.completed` | A connection's authorization resolved; carries `outcome`.                                                                          |
+| `step.completed`          | A model step finished; carries `finishReason` and usage.                                                                           |
+| `step.failed`             | A model step failed; carries `{ code, message, details? }`.                                                                        |
+| `turn.completed`          | The turn finished.                                                                                                                 |
+| `turn.failed`             | The turn failed; carries `{ code, message, details? }`.                                                                            |
+| `turn.cancelled`          | The turn was cancelled before finishing; always followed by `session.waiting`.                                                     |
+| `session.waiting`         | The session parked and is ready for the next message.                                                                              |
+| `session.failed`          | The session failed.                                                                                                                |
+| `session.completed`       | The session reached a terminal end.                                                                                                |
 
 The optional `data.trace` on session and turn starts contains eve-owned W3C trace coordinates: `traceId`, `spanId`, and `traceFlags`. Use it to correlate stream consumers such as eval reporters with an observability backend. An uninstrumented target omits it.
 
@@ -88,6 +88,8 @@ If a model provider fails after partial output and eve retries the call, the dur
 The client validates the `x-eve-stream-version` header on every connection. It normalizes v21–v24 cumulative message and reasoning appends, plus v24 offset-based tool-input appends, to the v25 delta-only contract. This lets a reconnect cross deployments without changing the reducer input. A current server performs the same normalization when replaying a session written by an earlier deployment. A missing or unsupported version, or an append whose fields do not match its declared version, fails instead of being interpreted as a current event.
 
 When a streamed tool input becomes a validated call, its `action.input.appended` events precede the matching `actions.requested` event. The default client reducer projects the potentially incomplete JSON as a `dynamic-tool` part with `state: "input-streaming"` and cumulative text in `inputText`. `actions.requested` replaces that part with `state: "input-available"` and the validated `input`. Excluded internal actions never publish their input stream.
+
+`action.result.data.status` reports the outcome of the call, not of the turn: a turn can complete after a failed call. An action is `failed` when its result carries `isError`, when the tool threw, or when an MCP tool returned a result with `isError: true` (the result stays in `data.result.output` for the model, and `data.error` is `ACTION_RESULT_FAILED` with the result's text). An action is also `failed`, with code `ACTION_INPUT_INVALID`, when the model's arguments did not satisfy the tool's input schema: the call never ran, `actions.requested` carries an empty `input`, and `data.error.message` names the offending fields without echoing the rejected values. The model still receives the full validation error in its next step. Calls to an unknown tool, and unparsable provider output, are not projected as actions.
 
 `action.partial` carries one complete preliminary output snapshot from an authored async-generator tool. A later partial for the same `callId` replaces it, and `action.result` is the final snapshot. When the durable writer is busy, eve may keep only the newest adjacent partial for a call. Treat partials as last-write-wins: a durable step can retry and replay overlapping event runs. Provider-executed tool progress and MCP progress notifications are not projected as `action.partial` events.
 
@@ -213,7 +215,9 @@ curl -X POST http://127.0.0.1:2000/eve/v1/session/<sessionId>/cancel \
   -d '{"tasks":true}'
 ```
 
-`"accepted"` means the live session durably queued the request; cancellation completes asynchronously. Confirm turn cancellation on the stream as `turn.cancelled` followed by `session.waiting`. Inspect task state in a later turn to confirm task cancellation. The session then accepts the next message normally. Background work that has not yet been admitted is rejected with the cancelled step. Each cancelled child reports its own boundary on its child-session stream. A live but already-parked session returns `"accepted"`; plain cancellation is a no-op there, while `tasks: true` still cancels indexed tasks. `"no_active_turn"` means the session or channel address is unknown or terminal. Both statuses are success, so clients can fire and forget. See the [eve channel](../channels/eve) for the full route contract.
+`"accepted"` means the live session durably queued the request; cancellation completes asynchronously. Confirm turn cancellation on the stream as `turn.cancelled` followed by `session.waiting`. Inspect task state in a later turn to confirm task cancellation. The session then accepts the next message normally. Background work that has not yet been admitted is rejected with the cancelled step. Each cancelled child reports its own boundary on its child-session stream. `"no_active_turn"` means there is no turn to cancel: the session or channel address is unknown or terminal, or the session is parked between turns (its latest persisted event is `session.waiting`). A request that names background work (`tasks: true` or `taskId`) is still dispatched to a parked session, because tasks outlive turns. The parked check reads the stream, so a message accepted but not yet reflected there is not seen. A request scoped by `turnId` can only name a turn that has already started. Both statuses are success, so clients can fire and forget, but only `"accepted"` means a turn was running when the request was made, and only `turn.cancelled` on the stream confirms it ended. Earlier versions answered `"accepted"` for a parked session. A request sent in the first instants after a session is created can reach it before it accepts commands and is answered `"no_active_turn"` while the turn goes on to run; wait for `turn.started` and cancel with its `turnId`.
+
+Cancellation is cooperative. A tool call that is blocked on a remote server, including an MCP connection tool, is abandoned when the turn is cancelled, so `turn.cancelled` does not wait for the server to answer. The remote side effect of a call that was already dispatched may still complete; cancellation never rolls it back. See the [eve channel](../channels/eve) for the full route contract.
 
 The HTTP route returns `202` for `"accepted"` and `200` for
 `"no_active_turn"`. Only the accepted result includes `sessionId`.

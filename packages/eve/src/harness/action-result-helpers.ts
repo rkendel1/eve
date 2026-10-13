@@ -2,6 +2,7 @@ import type { ModelMessage, ToolSet, TypedToolError, TypedToolResult } from "ai"
 
 import type { RuntimeToolResultActionResult } from "#shared/action-types.js";
 import { toError } from "#shared/errors.js";
+import { isMcpErrorResult } from "#shared/mcp-tool-result.js";
 import { parseJsonValue, type JsonValue } from "#shared/json.js";
 import {
   authorizationPendingAsJsonObject,
@@ -51,16 +52,16 @@ export function createRuntimeToolResultFromValue(input: {
   readonly output: unknown;
   readonly isError?: boolean;
 }): RuntimeToolResultActionResult {
+  // An MCP tool reports its own failure inside a result the call itself returned. The output stays
+  // verbatim for the model; only the outcome is corrected so the action is not reported completed.
+  const isError = input.isError === true || isMcpErrorResult(input.output);
   const result: RuntimeToolResultActionResult = {
     callId: input.callId,
     kind: "tool-result",
     output: toolResultOutputToJsonValue({
       output: {
-        type: input.isError === true ? "error-json" : "json",
-        value:
-          input.isError === true && input.output instanceof Error
-            ? input.output.message
-            : input.output,
+        type: isError ? "error-json" : "json",
+        value: isError && input.output instanceof Error ? input.output.message : input.output,
       },
       toolCallId: input.callId,
       toolName: input.toolName,
@@ -68,7 +69,7 @@ export function createRuntimeToolResultFromValue(input: {
     toolName: input.toolName,
   };
 
-  return input.isError === true ? { ...result, isError: true } : result;
+  return isError ? { ...result, isError: true } : result;
 }
 
 /**

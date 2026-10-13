@@ -39,11 +39,13 @@ import type { RunMode } from "#shared/run-mode.js";
 import { hasEmptyDeliverySentinel } from "#shared/empty-delivery.js";
 import type { JsonObject } from "#shared/json.js";
 import {
+  createRuntimeToolResultFromValue,
   createRuntimeToolResultFromStepResult,
   createRuntimeToolResultFromToolError,
   createToolResultMessagePartFromToolError,
 } from "#harness/action-result-helpers.js";
 import {
+  describeRejectedToolInput,
   createInvalidToolCallInputError,
   isInvalidToolCall,
   resolveProviderToolCallRequest,
@@ -474,9 +476,46 @@ async function consumeStreamContent(
     );
   };
 
+  // A call the SDK rejected for its arguments never runs, so the SDK only tells the model. Without
+  // these events a stream consumer sees neither the attempt nor the rejection, and the turn that
+  // follows reads as an ordinary completion. The request carries an empty `input` because the
+  // arguments failed validation; the failed result names the fields, never the values.
+  const emitRejectedToolCall = async (toolCall: TypedToolCall<ToolSet>): Promise<void> => {
+    const rejection = describeRejectedToolInput(toolCall);
+    if (
+      rejection === undefined ||
+      options === undefined ||
+      options.excludedActionToolNames.has(toolCall.toolName)
+    ) {
+      return;
+    }
+    await emitActionRequest(
+      createPresentedRuntimeActionRequestFromToolCall({
+        toolCall: {
+          dynamic: toolCall.dynamic,
+          input: {},
+          toolCallId: toolCall.toolCallId,
+          toolName: toolCall.toolName,
+          type: "tool-call",
+        } as TypedToolCall<ToolSet>,
+        tools: options.tools,
+      }),
+    );
+    await emitActionResult(
+      createRuntimeToolResultFromValue({
+        callId: toolCall.toolCallId,
+        isError: true,
+        output: { code: rejection.code, message: rejection.message },
+        toolName: toolCall.toolName,
+      }),
+    );
+    handledInlineToolResultCallIds.add(toolCall.toolCallId);
+  };
+
   const emitToolCall = async (toolCall: TypedToolCall<ToolSet>): Promise<void> => {
     if (isInvalidToolCall(toolCall)) {
       invalidInputToolCallIds.add(toolCall.toolCallId);
+      await emitRejectedToolCall(toolCall);
       return;
     }
     if (options === undefined || options.excludedActionToolNames.has(toolCall.toolName)) {
@@ -641,7 +680,10 @@ async function consumeStreamContent(
           await collectProviderToolCall(toolError);
           await providerActionBatch.flush();
           await emitActionResult(createRuntimeToolResultFromToolError(toolError));
-        } else if (emittedActionCallIds.has(toolError.toolCallId)) {
+        } else if (
+          emittedActionCallIds.has(toolError.toolCallId) &&
+          !invalidInputToolCallIds.has(toolError.toolCallId)
+        ) {
           await emitActionResult(createRuntimeToolResultFromToolError(toolError));
           handledInlineToolResultCallIds.add(toolError.toolCallId);
           trailingInlineToolResultParts.push(createToolResultMessagePartFromToolError(toolError));

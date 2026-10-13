@@ -279,12 +279,21 @@ export function createWorkflowRuntime(config: {
     async dispatchContinuation<TCommand extends SessionCommand>(
       input: DispatchContinuationInput<TCommand>,
     ): Promise<SessionCommandResult<TCommand>> {
+      if (isTurnOnlyCancel(input.command)) {
+        const owner = await resolveContinuationSessionId(input.continuationToken);
+        if (owner !== undefined && (await isSessionParked(owner))) {
+          return inactiveCommandResult(input.command);
+        }
+      }
       return await dispatchWorkflowCommand(input.continuationToken, input.command);
     },
 
     async dispatchSession<TCommand extends SessionCommand>(
       input: DispatchSessionInput<TCommand>,
     ): Promise<SessionCommandResult<TCommand>> {
+      if (isTurnOnlyCancel(input.command) && (await isSessionParked(input.sessionId))) {
+        return inactiveCommandResult(input.command);
+      }
       return await dispatchWorkflowCommand(sessionCommandHookToken(input.sessionId), input.command);
     },
 
@@ -311,18 +320,8 @@ export function createWorkflowRuntime(config: {
     async resolveContinuation(
       continuationToken: string,
     ): Promise<{ sessionId: string } | undefined> {
-      try {
-        const hook = await getRawHookByToken(continuationToken);
-        return { sessionId: hook.runId };
-      } catch (error) {
-        if (HookNotFoundError.is(error)) {
-          return undefined;
-        }
-        logError(log, "failed to resolve session by continuation token", error, {
-          continuationToken,
-        });
-        throw error;
-      }
+      const sessionId = await resolveContinuationSessionId(continuationToken);
+      return sessionId === undefined ? undefined : { sessionId };
     },
   };
 }
@@ -367,6 +366,67 @@ async function dispatchWorkflowCommand<TCommand extends SessionCommand>(
   }
 
   return activeCommandResult(command, hook.runId);
+}
+
+async function resolveContinuationSessionId(
+  continuationToken: string,
+): Promise<string | undefined> {
+  try {
+    return (await getRawHookByToken(continuationToken)).runId;
+  } catch (error) {
+    if (HookNotFoundError.is(error)) {
+      return undefined;
+    }
+    logError(log, "failed to resolve session by continuation token", error, {
+      continuationToken,
+    });
+    throw error;
+  }
+}
+
+/**
+ * A cancel that targets only turns. Cancels that name background tasks (`tasks`, `taskId`) stay
+ * meaningful on a parked session, so they are always dispatched.
+ */
+function isTurnOnlyCancel(command: SessionCommand): boolean {
+  return command.kind === "cancel" && command.tasks !== true && command.taskId === undefined;
+}
+
+/**
+ * Whether the session's latest persisted event is `session.waiting`: it finished its last turn and is
+ * idle between turns, so there is no turn to cancel. A live session keeps its command inbox while idle,
+ * which is why an accepted dispatch alone cannot tell "idle" from "running".
+ *
+ * This reads the stream, so it reflects what has been persisted. A message accepted but not yet
+ * reflected there is not seen; a cancel racing such a message is answered `no_active_turn`, and a cancel
+ * scoped by `turnId` is unaffected because it can only name a turn that has already started.
+ */
+async function isSessionParked(sessionId: string): Promise<boolean> {
+  // Answering "is it idle?" must never be able to stop a cancel from being dispatched, so any failure
+  // to read the stream means "unknown", and an unknown state is dispatched as before.
+  try {
+    const readable = getRun(sessionId).getReadable();
+    let tail: number;
+    try {
+      tail = await readable.getTailIndex();
+    } finally {
+      await readable.cancel().catch(() => {});
+    }
+    if (tail < 0) return false;
+
+    const reader = parseNdjsonStream<MessageStreamEvent>(
+      () => getRun(sessionId).getReadable({ startIndex: tail }),
+      normalizePersistedEvent,
+    ).getReader();
+    try {
+      const { value } = await reader.read();
+      return value?.type === "session.waiting";
+    } finally {
+      await reader.cancel().catch(() => {});
+    }
+  } catch {
+    return false;
+  }
 }
 
 function activeCommandResult<TCommand extends SessionCommand>(

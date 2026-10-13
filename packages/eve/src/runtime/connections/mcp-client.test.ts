@@ -836,3 +836,132 @@ describe("resolveHeaders with an active context (principal resolution + cache)",
     expect(received).toEqual({ type: "app" });
   });
 });
+
+describe("McpConnectionClient.executeTool cancellation", () => {
+  const lookup = {
+    description: "Look up a product",
+    inputSchema: { properties: { query: { type: "string" } }, type: "object" },
+    name: "lookup",
+  };
+  const never = (): Promise<never> => new Promise<never>(() => {});
+  const cancelled = new Error("turn cancelled");
+
+  beforeEach(() => {
+    createMCPClient.mockReset();
+  });
+
+  /** Runs `body` inside an auth context, as a tool call is. */
+  const inContext = async <T>(body: () => Promise<T>): Promise<T> =>
+    await contextStorage.run(ctxWithAuth(null), body);
+
+  /** Resolves with how the promise settled, or "pending" if it has not within `ms`. */
+  const settledWithin = async (promise: Promise<unknown>, ms: number): Promise<string> =>
+    await Promise.race([
+      promise.then(
+        () => "resolved",
+        (error: unknown) => (error === cancelled ? "rejected with the signal reason" : "rejected"),
+      ),
+      new Promise<string>((resolve) => setTimeout(() => resolve("pending"), ms)),
+    ]);
+
+  it("stops waiting when the turn is cancelled while the connection is still being set up", async () => {
+    // A cold step has no cached client: connecting and listing tools come first, and they take no signal.
+    createMCPClient.mockImplementation(never);
+    const controller = new AbortController();
+    const mcpClient = new McpConnectionClient(makeConnection());
+
+    await inContext(async () => {
+      const call = mcpClient.executeTool(
+        "lookup",
+        { query: "boots" },
+        { abortSignal: controller.signal, callId: "c" },
+      );
+      call.catch(() => undefined);
+      setTimeout(() => controller.abort(cancelled), 20);
+      await expect(settledWithin(call, 500)).resolves.toBe("rejected with the signal reason");
+    });
+  });
+
+  it("stops waiting when the tool list never arrives", async () => {
+    createMCPClient.mockResolvedValue({
+      close: vi.fn(),
+      listTools: never,
+      toolsFromDefinitions: vi.fn(),
+    });
+    const controller = new AbortController();
+    const mcpClient = new McpConnectionClient(makeConnection());
+
+    await inContext(async () => {
+      const call = mcpClient.executeTool(
+        "lookup",
+        { query: "boots" },
+        { abortSignal: controller.signal, callId: "c" },
+      );
+      call.catch(() => undefined);
+      setTimeout(() => controller.abort(cancelled), 20);
+      await expect(settledWithin(call, 500)).resolves.toBe("rejected with the signal reason");
+    });
+  });
+
+  it("stops waiting on a call that ignores the signal", async () => {
+    createMCPClient.mockResolvedValue({
+      close: vi.fn(),
+      listTools: vi.fn().mockResolvedValue({ tools: [lookup] }),
+      toolsFromDefinitions: vi.fn().mockReturnValue({ lookup: { execute: never } }),
+    });
+    const controller = new AbortController();
+    const mcpClient = new McpConnectionClient(makeConnection());
+
+    await inContext(async () => {
+      const call = mcpClient.executeTool(
+        "lookup",
+        { query: "boots" },
+        { abortSignal: controller.signal, callId: "c" },
+      );
+      call.catch(() => undefined);
+      setTimeout(() => controller.abort(cancelled), 20);
+      await expect(settledWithin(call, 500)).resolves.toBe("rejected with the signal reason");
+    });
+  });
+
+  it("rejects an already-cancelled call without connecting", async () => {
+    const controller = new AbortController();
+    controller.abort(cancelled);
+    const mcpClient = new McpConnectionClient(makeConnection());
+
+    await inContext(async () => {
+      await expect(
+        mcpClient.executeTool(
+          "lookup",
+          { query: "boots" },
+          { abortSignal: controller.signal, callId: "c" },
+        ),
+      ).rejects.toBe(cancelled);
+    });
+    expect(createMCPClient).not.toHaveBeenCalled();
+  });
+
+  it("does not change a call that is never cancelled, and removes its abort listener", async () => {
+    const execute = vi.fn().mockResolvedValue({ ok: true });
+    createMCPClient.mockResolvedValue({
+      close: vi.fn(),
+      listTools: vi.fn().mockResolvedValue({ tools: [lookup] }),
+      toolsFromDefinitions: vi.fn().mockReturnValue({ lookup: { execute } }),
+    });
+    const controller = new AbortController();
+    const remove = vi.spyOn(controller.signal, "removeEventListener");
+    const mcpClient = new McpConnectionClient(makeConnection());
+
+    await inContext(async () => {
+      await expect(
+        mcpClient.executeTool(
+          "lookup",
+          { query: "boots" },
+          { abortSignal: controller.signal, callId: "c" },
+        ),
+      ).resolves.toEqual({ ok: true });
+    });
+    expect(execute).toHaveBeenCalledWith({ query: "boots" }, { abortSignal: controller.signal });
+    expect(remove).toHaveBeenCalledWith("abort", expect.any(Function));
+  });
+});

@@ -131,3 +131,56 @@ export function getInvalidToolCallInputError(input: {
     throw error;
   }
 }
+
+/** Stable `action.result` error code for a tool call whose arguments failed schema validation. */
+export const ACTION_INPUT_INVALID = "ACTION_INPUT_INVALID";
+
+const MAX_REJECTION_ISSUES = 5;
+const MAX_REJECTION_ISSUE_LENGTH = 200;
+
+/**
+ * Describes a call the AI SDK rejected because its arguments did not satisfy the tool's input schema,
+ * or returns `undefined` for any other kind of invalid call (unknown tool, unparsable provider output).
+ *
+ * The message names each offending field and the validator's complaint, never the offending values: the
+ * SDK's own error message embeds the full rejected input, which can carry secrets the model copied into
+ * a mistaken call. The model still receives the SDK's complete error; this is the stream-facing view.
+ */
+export function describeRejectedToolInput(
+  toolCall: TypedToolCall<ToolSet>,
+): { readonly code: typeof ACTION_INPUT_INVALID; readonly message: string } | undefined {
+  if (!isInvalidToolCall(toolCall)) return undefined;
+  const error = (toolCall as { readonly error?: unknown }).error;
+  if (!isInvalidToolInputError(error)) return undefined;
+
+  const issues = collectValidationIssues(error).slice(0, MAX_REJECTION_ISSUES);
+  const detail =
+    issues.length === 0 ? "the arguments do not match the tool's input schema" : issues.join("; ");
+  return {
+    code: ACTION_INPUT_INVALID,
+    message: `Invalid arguments for tool "${toolCall.toolName}": ${detail}`,
+  };
+}
+
+/** The AI SDK tags its schema-validation rejection with a stable name, so no class identity is needed. */
+function isInvalidToolInputError(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    (error as { readonly name?: unknown }).name === "AI_InvalidToolInputError"
+  );
+}
+
+function collectValidationIssues(error: unknown, depth = 0): string[] {
+  if (depth > 4 || error === null || typeof error !== "object") return [];
+  const { cause, issues } = error as { cause?: unknown; issues?: unknown };
+  if (Array.isArray(issues)) return issues.map(formatValidationIssue);
+  return collectValidationIssues(cause, depth + 1);
+}
+
+function formatValidationIssue(issue: unknown): string {
+  const { message, path } = (issue ?? {}) as { message?: unknown; path?: unknown };
+  const where = Array.isArray(path) && path.length > 0 ? path.map(String).join(".") : "(input)";
+  const what = typeof message === "string" && message.length > 0 ? message : "is invalid";
+  return `${where}: ${what}`.slice(0, MAX_REJECTION_ISSUE_LENGTH);
+}

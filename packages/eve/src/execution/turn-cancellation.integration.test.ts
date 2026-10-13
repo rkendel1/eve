@@ -287,7 +287,7 @@ function expectNoFailureEvents(events: readonly UnstampedMessageStreamEvent[]): 
 /** Builds a cancel-route caller backed by the workflow runtime. */
 function createCancelRouteCaller(): (
   sessionId: string,
-  body?: { readonly turnId?: string },
+  body?: { readonly tasks?: boolean; readonly turnId?: string },
 ) => Promise<Response> {
   const channel = eveChannel({ auth: none() });
   const cancelRoute = (
@@ -590,6 +590,67 @@ describe("turn cancellation integration", () => {
     });
   });
 
+  it("answers the cancel route with the session's real state: active, blocked, parked, finished, unknown", async () => {
+    const fixture = await createWaitToolRuntime("turn-cancel-route-states");
+    const continuationToken = "http:turn-cancel-route-states";
+    const cancelViaRoute = createCancelRouteCaller();
+
+    await fixture.runtime.run(async () => {
+      await expectCancelResponse(await cancelViaRoute("never-existed"), {
+        status: "no_active_turn",
+      });
+
+      const run = await start(workflowEntry, [
+        {
+          input: { message: `Use the ${WAIT_TOOL_NAME} tool.` },
+          serializedContext: buildSerializedContext({
+            channelKind: "http",
+            continuationToken,
+            mode: "conversation",
+          }),
+        },
+      ]);
+      const stream = captureTurnEvents(run);
+
+      try {
+        await waitForHookByToken(sessionCommandHookToken(run.runId));
+        // Blocked: the tool is in flight and waiting on the turn signal, so there is a turn to cancel.
+        await fixture.toolStarted;
+        await expectCancelResponse(await cancelViaRoute(run.runId), {
+          sessionId: run.runId,
+          status: "accepted",
+        });
+        const cancelledTurn = await stream.nextTurn();
+        expect(cancelledTurn.at(-1)?.type).toBe("session.waiting");
+
+        // Parked after a cancellation: nothing to cancel.
+        await expectCancelResponse(await cancelViaRoute(run.runId), { status: "no_active_turn" });
+        await expectCancelResponse(await cancelViaRoute(run.runId, { turnId: "turn_0" }), {
+          status: "no_active_turn",
+        });
+        // A cancel that names background tasks is still dispatched: tasks outlive turns.
+        await expectCancelResponse(await cancelViaRoute(run.runId, { tasks: true }), {
+          sessionId: run.runId,
+          status: "accepted",
+        });
+
+        // Parked after a turn that completed normally: also nothing to cancel.
+        await waitForHook({ runId: run.runId }, { token: continuationToken });
+        await resumeHook(continuationToken, { kind: "send", payload: { message: "just reply" } });
+        const completedTurn = await stream.nextTurn();
+        expect(completedTurn.at(-1)?.type).toBe("session.waiting");
+        expect(filterEventsByType(completedTurn, "turn.cancelled")).toHaveLength(0);
+        await expectCancelResponse(await cancelViaRoute(run.runId), { status: "no_active_turn" });
+      } finally {
+        stream.dispose();
+        await run.cancel();
+      }
+
+      // Finished: the run is gone, so there is no session to cancel in.
+      await expectCancelResponse(await cancelViaRoute(run.runId), { status: "no_active_turn" });
+    });
+  });
+
   it("cancels a turn through the eve channel cancel route", async () => {
     const fixture = await createWaitToolRuntime("turn-cancel-route");
     const continuationToken = "http:turn-cancel-route";
@@ -636,10 +697,10 @@ describe("turn cancellation integration", () => {
         const started = filterEventsByType(cancelledTurn, "turn.started")[0];
         if (started === undefined) throw new Error("Expected the cancelled turn to have started.");
 
-        // The stable inbox remains owned while the session is parked, so a
-        // guarded duplicate is harmless even if another alias resolves first.
+        // The stable inbox stays owned while the session is parked, but there is no turn left to
+        // cancel: the route says so instead of accepting a request that can only be a no-op.
         const duplicate = await cancelViaRoute(run.runId, { turnId: started.data.turnId });
-        await expectCancelResponse(duplicate, { sessionId: run.runId, status: "accepted" });
+        await expectCancelResponse(duplicate, { status: "no_active_turn" });
 
         await waitForHook({ runId: run.runId }, { token: continuationToken });
         await resumeHook(continuationToken, {
@@ -723,12 +784,11 @@ describe("turn cancellation integration", () => {
         expectNoFailureEvents(cancelledTurn);
         expect(fixture.toolAborts()).toBe(1);
 
-        // Session.cancel() addresses the same parked session by its stable ID.
+        // Session.cancel() addresses the same parked session by its stable ID. The turn is over, so
+        // there is nothing to cancel, and the channel helper above agrees once the turn has settled.
         const session = createSession(run.runId, workflowRuntime);
-        await expect(session.cancel()).resolves.toEqual({
-          sessionId: run.runId,
-          status: "accepted",
-        });
+        await expect(session.cancel()).resolves.toEqual({ status: "no_active_turn" });
+        await expect(address(rawToken).cancel()).resolves.toEqual({ status: "no_active_turn" });
 
         await expect(
           workflowRuntime.dispatchContinuation({

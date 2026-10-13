@@ -127,23 +127,28 @@ export class McpConnectionClient implements ConnectionClient {
     options: ConnectionToolExecuteOptions,
   ): Promise<unknown> {
     try {
-      const { tools } = await this.#ensureTools();
+      // A cold step has no cached client, so the call starts by connecting and listing tools, and
+      // neither takes the turn signal. The whole call is therefore raced against the signal: a
+      // cancelled turn stops waiting at once instead of when an unresponsive server answers.
+      return await untilAborted(options.abortSignal, async () => {
+        const { tools } = await this.#ensureTools();
 
-      const sdkTool = tools[toolName];
-      if (sdkTool?.execute === undefined) {
-        throw new Error(
-          `Tool "${toolName}" not found in connection "${this.#connection.connectionName}".`,
-        );
-      }
+        const sdkTool = tools[toolName];
+        if (sdkTool?.execute === undefined) {
+          throw new Error(
+            `Tool "${toolName}" not found in connection "${this.#connection.connectionName}".`,
+          );
+        }
 
-      const resolvedArgs = await resolveProvidedArguments({
-        args,
-        callId: options.callId,
-        connection: this.#connection,
-        toolName,
+        const resolvedArgs = await resolveProvidedArguments({
+          args,
+          callId: options.callId,
+          connection: this.#connection,
+          toolName,
+        });
+
+        return await sdkTool.execute(resolvedArgs, { abortSignal: options.abortSignal } as never);
       });
-
-      return await sdkTool.execute(resolvedArgs, { abortSignal: options.abortSignal } as never);
     } catch (error) {
       return await this.#rethrowClassified(error);
     }
@@ -451,4 +456,29 @@ async function resolveHeaderValue(
     return await value(getContext());
   }
   return await value;
+}
+
+/**
+ * Settles with `work`, unless `signal` aborts first: then rejects with the signal's reason.
+ *
+ * `work` is abandoned, not cancelled. A connection is shared by every call in the step, so an
+ * in-flight connect or tool listing is left to finish for the next caller; any side effect of a call
+ * already dispatched to the server may still complete. That is cooperative cancellation, not rollback.
+ */
+async function untilAborted<T>(
+  signal: AbortSignal | undefined,
+  work: () => Promise<T>,
+): Promise<T> {
+  if (signal === undefined) return await work();
+  signal.throwIfAborted();
+  let onAbort: () => void = () => {};
+  const aborted = new Promise<never>((_resolve, reject) => {
+    onAbort = () => reject(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+  try {
+    return await Promise.race([work(), aborted]);
+  } finally {
+    signal.removeEventListener("abort", onAbort);
+  }
 }
